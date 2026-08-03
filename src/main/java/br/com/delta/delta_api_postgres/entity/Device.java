@@ -1,11 +1,19 @@
 package br.com.delta.delta_api_postgres.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Entity
 @Table(name="tb_device")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Device {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
