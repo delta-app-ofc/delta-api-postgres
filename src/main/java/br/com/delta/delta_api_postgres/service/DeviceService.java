@@ -7,11 +7,12 @@ import br.com.delta.delta_api_postgres.mapper.DeviceMapper;
 import br.com.delta.delta_api_postgres.repository.DeviceRepository;
 import br.com.delta.delta_api_postgres.repository.PropertyRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor

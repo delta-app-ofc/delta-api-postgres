@@ -1,6 +1,8 @@
 package br.com.delta.delta_api_postgres.mapper;
 
 import br.com.delta.delta_api_postgres.dto.io.DeviceIO;
+import br.com.delta.delta_api_postgres.dto.request.CreateDeviceRequest;
+import br.com.delta.delta_api_postgres.dto.request.UpdateDeviceRequest;
 import br.com.delta.delta_api_postgres.entity.Device;
 import br.com.delta.delta_api_postgres.entity.Property;
 import org.springframework.stereotype.Component;
@@ -9,6 +11,31 @@ import java.time.LocalDate;
 
 @Component
 public class DeviceMapper {
+
+    public DeviceIO fromCreateRequest(CreateDeviceRequest request) {
+
+        return new DeviceIO(
+                null,
+                request.deviceId(),
+                request.propertyId(),
+                request.isActive(),
+                null
+        );
+    }
+
+    public DeviceIO fromUpdateRequest(
+            Integer id,
+            UpdateDeviceRequest request
+    ) {
+
+        return new DeviceIO(
+                id,
+                request.deviceId(),
+                request.propertyId(),
+                request.isActive(),
+                null
+        );
+    }
 
 
     public DeviceIO toIO(Device device) {
@@ -22,8 +49,10 @@ public class DeviceMapper {
         );
     }
 
-
-    public Device toEntity(DeviceIO io, Property property) {
+    public Device toEntity(
+            DeviceIO io,
+            Property property
+    ) {
 
         Device device = new Device();
 
@@ -38,7 +67,6 @@ public class DeviceMapper {
 
         return device;
     }
-
 
     public void updateEntity(
             Device device,

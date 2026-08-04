@@ -1,8 +1,17 @@
 package br.com.delta.delta_api_postgres.controller;
 
+import br.com.delta.delta_api_postgres.dto.io.DeviceIO;
+import br.com.delta.delta_api_postgres.dto.request.CreateDeviceRequest;
+import br.com.delta.delta_api_postgres.dto.request.UpdateDeviceRequest;
+import br.com.delta.delta_api_postgres.mapper.DeviceMapper;
 import br.com.delta.delta_api_postgres.service.DeviceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/delta/devices")
@@ -10,35 +19,50 @@ import org.springframework.web.bind.annotation.*;
 public class DeviceController {
 
     private final DeviceService deviceService;
+    private final DeviceMapper deviceMapper;
 
-    @PostMapping()
-    public ResponseEntity<DeviceResponseDTO> create(
-            @RequestBody DeviceCreateDTO dto) {
 
-        DeviceResponseDTO response = deviceService.create(dto);
+    @PostMapping
+    public ResponseEntity<DeviceIO> create(
+            @RequestBody @Valid CreateDeviceRequest request) {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        DeviceIO response = deviceService.create(
+                deviceMapper.fromCreateRequest(request)
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    @GetMapping()
-    public ResponseEntity<List<DeviceResponseDTO>> findAll() {
+    @GetMapping
+    public ResponseEntity<List<DeviceIO>> findAll() {
 
-        return ResponseEntity.ok(deviceService.findAll());
+        return ResponseEntity.ok(
+                deviceService.findAll()
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DeviceResponseDTO> findById(
+    public ResponseEntity<DeviceIO> findById(
             @PathVariable Integer id) {
 
-        return ResponseEntity.ok(deviceService.findById(id));
+        return ResponseEntity.ok(
+                deviceService.findById(id)
+        );
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DeviceResponseDTO> update(
+    public ResponseEntity<DeviceIO> update(
             @PathVariable Integer id,
-            @RequestBody DeviceUpdateDTO dto) {
+            @RequestBody @Valid UpdateDeviceRequest request) {
 
-        return ResponseEntity.ok(deviceService.update(id, dto));
+        DeviceIO response = deviceService.update(
+                id,
+                deviceMapper.fromUpdateRequest(id, request)
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
