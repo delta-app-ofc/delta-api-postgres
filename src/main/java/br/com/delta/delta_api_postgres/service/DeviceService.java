@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.service;
 
+import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
+import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.dto.io.DeviceIO;
 import br.com.delta.delta_api_postgres.entity.Device;
 import br.com.delta.delta_api_postgres.entity.Property;
@@ -24,7 +26,7 @@ public class DeviceService {
     public DeviceIO create(DeviceIO io) {
 
         if(deviceRepository.existsByDeviceId(io.deviceId())){
-            throw new IllegalArgumentException(
+            throw new ResourceAlreadyExistsException(
                     "Device já cadastrado"
             );
         }
@@ -32,7 +34,7 @@ public class DeviceService {
 
         Property property = propertyRepository.findById(io.propertyId())
                 .orElseThrow(() ->
-                        new EntityNotFoundException(
+                        new ResourceNotFoundException(
                                 "Property não encontrada"
                         )
                 );
@@ -68,7 +70,7 @@ public class DeviceService {
 
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->
-                        new EntityNotFoundException(
+                        new ResourceNotFoundException(
                                 "Device não encontrado"
                         )
                 );
@@ -86,7 +88,7 @@ public class DeviceService {
 
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->
-                        new EntityNotFoundException(
+                        new ResourceNotFoundException(
                                 "Device não encontrado"
                         )
                 );
@@ -94,7 +96,7 @@ public class DeviceService {
 
         Property property = propertyRepository.findById(io.propertyId())
                 .orElseThrow(() ->
-                        new EntityNotFoundException(
+                        new ResourceNotFoundException(
                                 "Property não encontrada"
                         )
                 );
@@ -119,7 +121,7 @@ public class DeviceService {
 
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->
-                        new EntityNotFoundException(
+                        new ResourceNotFoundException(
                                 "Device não encontrado"
                         )
                 );

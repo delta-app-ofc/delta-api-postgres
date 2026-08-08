@@ -32,9 +32,9 @@ public class Property {
     @Column(nullable = false, length = 20)
     private PropertyClassification classification;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "address_id", nullable = false)
-    private Address address;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "address_id", nullable = false)
+//    private Address address;
 
     @Column(name = "registration_date", nullable = false)
     private LocalDate registrationDate;
