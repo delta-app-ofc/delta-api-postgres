@@ -21,7 +21,6 @@ public class DeviceController {
     private final DeviceService deviceService;
     private final DeviceMapper deviceMapper;
 
-
     @PostMapping
     public ResponseEntity<DeviceIO> create(
             @RequestBody @Valid CreateDeviceRequest request) {
