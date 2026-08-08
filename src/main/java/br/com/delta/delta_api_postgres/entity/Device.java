@@ -20,7 +20,7 @@ public class Device {
     private Integer id;
 
     @Column(name = "device_id", nullable = false, unique = true)
-    private Integer deviceId;
+    private String deviceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id", nullable = false)
