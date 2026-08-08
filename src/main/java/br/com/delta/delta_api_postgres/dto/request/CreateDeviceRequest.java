@@ -1,7 +1,7 @@
 package br.com.delta.delta_api_postgres.dto.request;
 
 public record CreateDeviceRequest(
-        Integer deviceId,
+        String deviceId,
         Integer propertyId,
         Boolean isActive
 ) {
