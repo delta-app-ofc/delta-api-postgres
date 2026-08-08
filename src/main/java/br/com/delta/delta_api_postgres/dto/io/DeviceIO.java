@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public record DeviceIO(
         Integer id,
-        Integer deviceId,
+        String deviceId,
         Integer propertyId,
         Boolean isActive,
         LocalDate installationDate
