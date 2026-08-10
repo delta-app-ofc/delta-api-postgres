@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/delta/devices")
 @RequiredArgsConstructor
-public class DeviceController {
+public class    DeviceController {
 
     private final DeviceService deviceService;
     private final DeviceMapper deviceMapper;

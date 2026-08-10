@@ -27,7 +27,7 @@ public class DeviceService {
 
         if(deviceRepository.existsByDeviceId(io.deviceId())){
             throw new ResourceAlreadyExistsException(
-                    "Device já cadastrado"
+                    "Dispositivo já cadastrado"
             );
         }
 
@@ -35,7 +35,7 @@ public class DeviceService {
         Property property = propertyRepository.findById(io.propertyId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Property não encontrada"
+                                "Propriedade não encontrada"
                         )
                 );
 
@@ -71,7 +71,7 @@ public class DeviceService {
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Device não encontrado"
+                                "Dispositivo não encontrado"
                         )
                 );
 
@@ -85,11 +85,16 @@ public class DeviceService {
             Integer id,
             DeviceIO io
     ){
+        if (deviceRepository.existsByDeviceId(io.deviceId())) {
+            throw new ResourceAlreadyExistsException(
+                    "Já existe um Device com esse device_id."
+            );
+        }
 
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Device não encontrado"
+                                "Dispositivo não encontrado"
                         )
                 );
 
@@ -97,7 +102,7 @@ public class DeviceService {
         Property property = propertyRepository.findById(io.propertyId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Property não encontrada"
+                                "Propriedade não encontrada"
                         )
                 );
 
@@ -122,7 +127,7 @@ public class DeviceService {
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Device não encontrado"
+                                "Dispositivo não encontrado"
                         )
                 );
 
