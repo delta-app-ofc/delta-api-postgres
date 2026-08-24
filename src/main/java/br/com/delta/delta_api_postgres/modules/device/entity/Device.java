@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.entity;
+package br.com.delta.delta_api_postgres.modules.device.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

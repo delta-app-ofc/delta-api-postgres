@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.dto.io;
+package br.com.delta.delta_api_postgres.modules.device.dto.io;
 
 import java.time.LocalDate;
 

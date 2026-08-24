@@ -1,14 +1,13 @@
-package br.com.delta.delta_api_postgres.service;
+package br.com.delta.delta_api_postgres.modules.device.service;
 
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
-import br.com.delta.delta_api_postgres.dto.io.DeviceIO;
-import br.com.delta.delta_api_postgres.entity.Device;
-import br.com.delta.delta_api_postgres.entity.Property;
-import br.com.delta.delta_api_postgres.mapper.DeviceMapper;
-import br.com.delta.delta_api_postgres.repository.DeviceRepository;
-import br.com.delta.delta_api_postgres.repository.PropertyRepository;
-import jakarta.persistence.EntityNotFoundException;
+import br.com.delta.delta_api_postgres.modules.device.dto.io.DeviceIO;
+import br.com.delta.delta_api_postgres.modules.device.entity.Device;
+import br.com.delta.delta_api_postgres.modules.device.entity.Property;
+import br.com.delta.delta_api_postgres.modules.device.mapper.DeviceMapper;
+import br.com.delta.delta_api_postgres.modules.device.repository.DeviceRepository;
+import br.com.delta.delta_api_postgres.modules.device.repository.PropertyRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
