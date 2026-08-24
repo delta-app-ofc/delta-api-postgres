@@ -1,6 +1,6 @@
-package br.com.delta.delta_api_postgres.repository;
+package br.com.delta.delta_api_postgres.modules.device.repository;
 
-import br.com.delta.delta_api_postgres.entity.Device;
+import br.com.delta.delta_api_postgres.modules.device.entity.Device;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

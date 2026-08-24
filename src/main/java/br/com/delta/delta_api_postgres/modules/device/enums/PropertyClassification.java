@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.enums;
+package br.com.delta.delta_api_postgres.modules.device.enums;
 
 public enum PropertyClassification {
     RESIDENCIAL,

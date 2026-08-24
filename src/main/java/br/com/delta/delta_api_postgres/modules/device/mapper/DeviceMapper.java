@@ -1,10 +1,10 @@
-package br.com.delta.delta_api_postgres.mapper;
+package br.com.delta.delta_api_postgres.modules.device.mapper;
 
-import br.com.delta.delta_api_postgres.dto.io.DeviceIO;
-import br.com.delta.delta_api_postgres.dto.request.CreateDeviceRequest;
-import br.com.delta.delta_api_postgres.dto.request.UpdateDeviceRequest;
-import br.com.delta.delta_api_postgres.entity.Device;
-import br.com.delta.delta_api_postgres.entity.Property;
+import br.com.delta.delta_api_postgres.modules.device.dto.io.DeviceIO;
+import br.com.delta.delta_api_postgres.modules.device.dto.request.CreateDeviceRequest;
+import br.com.delta.delta_api_postgres.modules.device.dto.request.UpdateDeviceRequest;
+import br.com.delta.delta_api_postgres.modules.device.entity.Device;
+import br.com.delta.delta_api_postgres.modules.device.entity.Property;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -44,7 +44,7 @@ public class DeviceMapper {
                 device.getId(),
                 device.getDeviceId(),
                 device.getProperty().getId(),
-                device.getIsActive(),
+                device.isActive(),
                 device.getInstallationDate()
         );
     }
@@ -58,7 +58,7 @@ public class DeviceMapper {
 
         device.setDeviceId(io.deviceId());
         device.setProperty(property);
-        device.setIsActive(io.isActive());
+        device.setActive(io.isActive());
         device.setInstallationDate(
                 io.installationDate() != null
                         ? io.installationDate()
@@ -76,7 +76,7 @@ public class DeviceMapper {
 
         device.setDeviceId(io.deviceId());
         device.setProperty(property);
-        device.setIsActive(io.isActive());
+        device.setActive(io.isActive());
 
     }
 }

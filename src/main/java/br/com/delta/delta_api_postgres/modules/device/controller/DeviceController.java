@@ -1,10 +1,10 @@
-package br.com.delta.delta_api_postgres.controller;
+package br.com.delta.delta_api_postgres.modules.device.controller;
 
-import br.com.delta.delta_api_postgres.dto.io.DeviceIO;
-import br.com.delta.delta_api_postgres.dto.request.CreateDeviceRequest;
-import br.com.delta.delta_api_postgres.dto.request.UpdateDeviceRequest;
-import br.com.delta.delta_api_postgres.mapper.DeviceMapper;
-import br.com.delta.delta_api_postgres.service.DeviceService;
+import br.com.delta.delta_api_postgres.modules.device.dto.io.DeviceIO;
+import br.com.delta.delta_api_postgres.modules.device.dto.request.CreateDeviceRequest;
+import br.com.delta.delta_api_postgres.modules.device.dto.request.UpdateDeviceRequest;
+import br.com.delta.delta_api_postgres.modules.device.mapper.DeviceMapper;
+import br.com.delta.delta_api_postgres.modules.device.service.DeviceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

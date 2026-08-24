@@ -1,7 +1,7 @@
-package br.com.delta.delta_api_postgres.entity;
+package br.com.delta.delta_api_postgres.modules.device.entity;
 
-import br.com.delta.delta_api_postgres.enums.PropertyClassification;
-import br.com.delta.delta_api_postgres.enums.PropertyType;
+import br.com.delta.delta_api_postgres.modules.device.enums.PropertyClassification;
+import br.com.delta.delta_api_postgres.modules.device.enums.PropertyType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
