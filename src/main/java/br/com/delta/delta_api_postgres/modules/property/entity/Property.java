@@ -31,7 +31,7 @@ public class Property {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private PropertyClassification classification;
-    private Integer address;
+    private Integer addressId;
 
     @Column(name = "registration_date", nullable = false)
     private LocalDate registrationDate;
