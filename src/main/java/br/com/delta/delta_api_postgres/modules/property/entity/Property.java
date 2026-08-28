@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.modules.device.entity;
+package br.com.delta.delta_api_postgres.modules.property.entity;
 
 import br.com.delta.delta_api_postgres.modules.device.enums.PropertyClassification;
 import br.com.delta.delta_api_postgres.modules.device.enums.PropertyType;
