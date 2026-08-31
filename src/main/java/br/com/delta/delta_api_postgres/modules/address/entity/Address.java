@@ -17,7 +17,7 @@ public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "region_id", nullable = false)
     private Region region;
     @Column(name = "cep", nullable = false, length = 8)
