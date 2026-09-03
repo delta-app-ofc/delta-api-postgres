@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 public record RegionRateIO(
         Integer id,
-        Integer regionId,
+        String regionName,
         BigDecimal m3Value,
         LocalDate initialValidity,
         LocalDate finalValidity

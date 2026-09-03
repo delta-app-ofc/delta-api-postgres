@@ -10,7 +10,7 @@ public class RegionRateMapper {
     public RegionRateIO toIO(RegionRate regionRate) {
         return new RegionRateIO(
                 regionRate.getId(),
-                regionRate.getRegion().getId(),
+                regionRate.getRegion().getName(),
                 regionRate.getM3Value(),
                 regionRate.getInitialValidity(),
                 regionRate.getFinalValidity()
