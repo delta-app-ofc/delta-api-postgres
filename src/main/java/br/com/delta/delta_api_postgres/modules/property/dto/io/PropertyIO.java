@@ -3,6 +3,7 @@ package br.com.delta.delta_api_postgres.modules.property.dto.io;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyClassification;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyType;
+import jakarta.persistence.criteria.CriteriaBuilder;
 
 import java.time.LocalDate;
 
@@ -11,7 +12,7 @@ public record PropertyIO(
         String name,
         PropertyType type,
         PropertyClassification classification,
-        Address address,
+        Integer addressId,
         LocalDate registrationDate
 ) {
 }
