@@ -17,11 +17,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/delta/property")
 @RequiredArgsConstructor
-public class PropertyController{
+public class PropertyController implements PropertySwagger {
     private final PropertyService propertyService;
     private final PropertyMapper propertyMapper;
 
-
+    @Override
     @PostMapping
     public ResponseEntity<PropertyIO> create(@RequestBody @Valid CreatePropertyRequest request) {
         PropertyIO response = propertyService.create(propertyMapper.fromCreateToIO(request));
@@ -29,7 +29,7 @@ public class PropertyController{
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
+    @Override
     @GetMapping
     public ResponseEntity<List<PropertyIO>> findAll() {
         List<PropertyIO> response = propertyService.findAll();
@@ -37,7 +37,7 @@ public class PropertyController{
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<PropertyIO> findById(@PathVariable Integer id) {
         PropertyIO response = propertyService.findById(id);
@@ -45,7 +45,7 @@ public class PropertyController{
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-
+    @Override
     @PutMapping("/{id}")
     public ResponseEntity<PropertyIO> update(@PathVariable Integer id, @RequestBody @Valid
     UpdatePropertyRequest request) {
@@ -54,7 +54,7 @@ public class PropertyController{
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         propertyService.delete(id);
