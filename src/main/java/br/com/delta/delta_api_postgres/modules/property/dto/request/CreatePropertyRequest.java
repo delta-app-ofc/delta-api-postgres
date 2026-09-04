@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.property.dto.request;
 
+import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyClassification;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyType;
 import jakarta.validation.constraints.NotBlank;
@@ -14,7 +15,6 @@ public record CreatePropertyRequest(
         PropertyType type,
         @NotNull
         PropertyClassification classification,
-        @NotNull @Positive
-        Integer addressId
+        Address address
 ) {
 }

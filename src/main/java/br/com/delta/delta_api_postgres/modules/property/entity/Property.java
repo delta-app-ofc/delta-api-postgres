@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.property.entity;
 
+import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyClassification;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyType;
 import jakarta.persistence.*;
@@ -31,7 +32,9 @@ public class Property {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private PropertyClassification classification;
-    private Integer addressId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "address_id", nullable = false)
+    private Address address;
 
     @Column(name = "registration_date", nullable = false)
     private LocalDate registrationDate;

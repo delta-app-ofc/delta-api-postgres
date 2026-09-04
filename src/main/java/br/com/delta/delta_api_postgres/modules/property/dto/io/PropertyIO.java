@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.property.dto.io;
 
+import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyClassification;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyType;
 
@@ -10,7 +11,7 @@ public record PropertyIO(
         String name,
         PropertyType type,
         PropertyClassification classification,
-        Integer adressId,
+        Address address,
         LocalDate registrationDate
 ) {
 }
