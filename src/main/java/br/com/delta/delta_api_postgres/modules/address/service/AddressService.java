@@ -2,7 +2,6 @@ package br.com.delta.delta_api_postgres.modules.address.service;
 
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.address.dto.io.AddressIO;
-import br.com.delta.delta_api_postgres.modules.address.dto.request.CreateAddressRequest;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.mapper.AddressMapper;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
@@ -16,6 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AddressService {
     private final AddressRepository addressRepository;
     private final RegionRepository regionRepository;
@@ -35,7 +35,7 @@ public class AddressService {
     public List<AddressIO> findAll(){
         return addressRepository.findAll().stream().map(addressMapper::toIo).toList();
     }
-
+    @Transactional(readOnly = true)
     public AddressIO findById(Integer id) {
         Address address = addressRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Endereço nao encontrado")

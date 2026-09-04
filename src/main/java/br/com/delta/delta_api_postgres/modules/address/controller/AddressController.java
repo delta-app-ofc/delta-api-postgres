@@ -5,10 +5,8 @@ import br.com.delta.delta_api_postgres.modules.address.dto.request.CreateAddress
 import br.com.delta.delta_api_postgres.modules.address.dto.request.UpdateAddressRequest;
 import br.com.delta.delta_api_postgres.modules.address.mapper.AddressMapper;
 import br.com.delta.delta_api_postgres.modules.address.service.AddressService;
-import br.com.delta.delta_api_postgres.modules.device.dto.io.DeviceIO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
