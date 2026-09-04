@@ -34,3 +34,6 @@ build/
 
 ### ENV ###
 .env
+
+### Arquivos temporários do editor ###
+*~

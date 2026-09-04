@@ -4,10 +4,10 @@ import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsExc
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.device.dto.io.DeviceIO;
 import br.com.delta.delta_api_postgres.modules.device.entity.Device;
-import br.com.delta.delta_api_postgres.modules.device.entity.Property;
+import br.com.delta.delta_api_postgres.modules.property.entity.Property;
 import br.com.delta.delta_api_postgres.modules.device.mapper.DeviceMapper;
 import br.com.delta.delta_api_postgres.modules.device.repository.DeviceRepository;
-import br.com.delta.delta_api_postgres.modules.device.repository.PropertyRepository;
+import br.com.delta.delta_api_postgres.modules.property.repository.PropertyRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
