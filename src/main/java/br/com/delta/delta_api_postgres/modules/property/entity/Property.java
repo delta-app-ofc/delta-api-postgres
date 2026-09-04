@@ -36,6 +36,12 @@ public class Property {
     @JoinColumn(name = "address_id", nullable = false)
     private Address address;
 
-    @Column(name = "registration_date", nullable = false)
+    @Column(name = "registration_date", nullable = false, updatable = false)
     private LocalDate registrationDate;
+    @PrePersist
+    private void prePersist() {
+        if (registrationDate == null) {
+            registrationDate = LocalDate.now();
+        }
+    }
 }
