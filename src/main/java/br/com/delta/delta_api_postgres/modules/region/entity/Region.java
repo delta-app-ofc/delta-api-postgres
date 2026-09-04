@@ -2,9 +2,11 @@ package br.com.delta.delta_api_postgres.modules.region.entity;
 
 import br.com.delta.delta_api_postgres.modules.region.enums.RegionName;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
 @Table(name = "tb_region")
+@Getter
 public class Region {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
