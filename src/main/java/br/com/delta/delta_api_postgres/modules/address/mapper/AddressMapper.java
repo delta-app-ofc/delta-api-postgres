@@ -32,7 +32,7 @@ public class AddressMapper {
     public AddressIO fromCreateRequest(CreateAddressRequest createAddressRequest){
         return new AddressIO(
                 null,
-                null,
+                createAddressRequest.regionId(),
                 createAddressRequest.cep(),
                 createAddressRequest.city(),
                 createAddressRequest.state()
