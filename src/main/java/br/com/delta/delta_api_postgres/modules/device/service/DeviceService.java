@@ -84,18 +84,18 @@ public class DeviceService {
             Integer id,
             DeviceIO io
     ){
-        if (deviceRepository.existsByDeviceId(io.deviceId())) {
-            throw new ResourceAlreadyExistsException(
-                    "Já existe um Device com esse device_id."
-            );
-        }
-
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Dispositivo não encontrado"
                         )
                 );
+
+        if (deviceRepository.existsByDeviceIdAndIdNot(io.deviceId(), id)) {
+            throw new ResourceAlreadyExistsException(
+                    "Já existe um dispositivo com esse device_id."
+            );
+        }
 
 
         Property property = propertyRepository.findById(io.propertyId())

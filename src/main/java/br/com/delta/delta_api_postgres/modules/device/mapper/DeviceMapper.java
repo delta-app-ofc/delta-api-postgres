@@ -18,7 +18,7 @@ public class DeviceMapper {
                 null,
                 request.deviceId(),
                 request.propertyId(),
-                request.isActive(),
+                request.isActive() != null ? request.isActive() : true,
                 null
         );
     }
