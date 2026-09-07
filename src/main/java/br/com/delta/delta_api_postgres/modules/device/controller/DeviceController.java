@@ -5,6 +5,7 @@ import br.com.delta.delta_api_postgres.modules.device.dto.request.CreateDeviceRe
 import br.com.delta.delta_api_postgres.modules.device.dto.request.UpdateDeviceRequest;
 import br.com.delta.delta_api_postgres.modules.device.mapper.DeviceMapper;
 import br.com.delta.delta_api_postgres.modules.device.service.DeviceService;
+import br.com.delta.delta_api_postgres.modules.device.swagger.DeviceSwagger;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,11 +17,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/delta/device")
 @RequiredArgsConstructor
-public class    DeviceController {
+public class DeviceController implements DeviceSwagger {
 
     private final DeviceService deviceService;
     private final DeviceMapper deviceMapper;
 
+    @Override
     @PostMapping
     public ResponseEntity<DeviceIO> create(
             @RequestBody @Valid CreateDeviceRequest request) {
@@ -34,6 +36,7 @@ public class    DeviceController {
                 .body(response);
     }
 
+    @Override
     @GetMapping
     public ResponseEntity<List<DeviceIO>> findAll() {
 
@@ -42,6 +45,7 @@ public class    DeviceController {
         );
     }
 
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<DeviceIO> findById(
             @PathVariable Integer id) {
@@ -51,6 +55,7 @@ public class    DeviceController {
         );
     }
 
+    @Override
     @PutMapping("/{id}")
     public ResponseEntity<DeviceIO> update(
             @PathVariable Integer id,
@@ -64,6 +69,7 @@ public class    DeviceController {
         return ResponseEntity.ok(response);
     }
 
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Integer id) {
