@@ -20,15 +20,15 @@ public class RegionRateService {
 
     @Transactional(readOnly = true)
     public List<RegionRateIO> findByRegion(Integer regionId, Boolean last) {
-        boolean lastWasProvided = last != null;
+        boolean lastWasRequested = Boolean.TRUE.equals(last);
 
-        List<RegionRate> regionRates = lastWasProvided
+        List<RegionRate> regionRates = lastWasRequested
                 ? regionRateRepository.findAllByRegionIdAndFinalValidityIsNullOrderByInitialValidityDesc(regionId)
                 : regionRateRepository.findAllByRegionIdOrderByInitialValidityDesc(regionId);
 
         if (regionRates.isEmpty()) {
             throw new ResourceNotFoundException(
-                    lastWasProvided
+                    lastWasRequested
                             ? "Tarifa vigente não encontrada para a região"
                             : "Nenhuma tarifa encontrada para a região"
             );
