@@ -40,6 +40,7 @@ public interface DeviceSwagger {
     @Operation(summary = "Atualizar dispositivo")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Dispositivo atualizado"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "404", description = "Dispositivo ou propriedade não encontrado"),
             @ApiResponse(responseCode = "409", description = "Dispositivo já cadastrado")
     })
