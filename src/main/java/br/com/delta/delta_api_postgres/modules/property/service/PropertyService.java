@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.property.service;
 
+import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
@@ -25,6 +26,9 @@ public class PropertyService {
         Address address = addressRepository.findById(request.addressId()).orElseThrow(
                 () -> new ResourceNotFoundException("Endereço nao encontrado")
         );
+        if (propertyRepository.existsByName(request.name())) {
+            throw new ResourceAlreadyExistsException("Propriedade ja cadastrada, o nome deve ser único");
+        }
         Property property = propertyMapper.toEntity(request, address);
 
         Property savedProperty = propertyRepository.save(property);
