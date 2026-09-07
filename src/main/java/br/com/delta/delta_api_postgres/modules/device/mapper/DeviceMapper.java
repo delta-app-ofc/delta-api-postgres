@@ -4,7 +4,7 @@ import br.com.delta.delta_api_postgres.modules.device.dto.io.DeviceIO;
 import br.com.delta.delta_api_postgres.modules.device.dto.request.CreateDeviceRequest;
 import br.com.delta.delta_api_postgres.modules.device.dto.request.UpdateDeviceRequest;
 import br.com.delta.delta_api_postgres.modules.device.entity.Device;
-import br.com.delta.delta_api_postgres.modules.device.entity.Property;
+import br.com.delta.delta_api_postgres.modules.property.entity.Property;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;

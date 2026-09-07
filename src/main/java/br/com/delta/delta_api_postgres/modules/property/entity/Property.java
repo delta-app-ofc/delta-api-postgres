@@ -1,7 +1,8 @@
-package br.com.delta.delta_api_postgres.modules.device.entity;
+package br.com.delta.delta_api_postgres.modules.property.entity;
 
-import br.com.delta.delta_api_postgres.modules.device.enums.PropertyClassification;
-import br.com.delta.delta_api_postgres.modules.device.enums.PropertyType;
+import br.com.delta.delta_api_postgres.modules.address.entity.Address;
+import br.com.delta.delta_api_postgres.modules.property.enums.PropertyClassification;
+import br.com.delta.delta_api_postgres.modules.property.enums.PropertyType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,11 +32,16 @@ public class Property {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private PropertyClassification classification;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "address_id", nullable = false)
+    private Address address;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "address_id", nullable = false)
-//    private Address address;
-
-    @Column(name = "registration_date", nullable = false)
+    @Column(name = "registration_date", nullable = false, updatable = false)
     private LocalDate registrationDate;
+    @PrePersist
+    private void prePersist() {
+        if (registrationDate == null) {
+            registrationDate = LocalDate.now();
+        }
+    }
 }
