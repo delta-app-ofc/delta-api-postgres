@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DeltaApiPostgresApplicationTests {
+class DeltaApiPostgresApplicationTests extends AuthTestConfig {
 
 	@Test
 	void contextLoads() {
