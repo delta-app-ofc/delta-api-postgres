@@ -5,6 +5,7 @@ import br.com.delta.delta_api_postgres.modules.user_property.dto.request.CreateU
 import br.com.delta.delta_api_postgres.modules.user_property.dto.request.UpdateUserPropertyRequest;
 import br.com.delta.delta_api_postgres.modules.user_property.mapper.UserPropertyMapper;
 import br.com.delta.delta_api_postgres.modules.user_property.service.UserPropertyService;
+import br.com.delta.delta_api_postgres.modules.user_property.swagger.UserPropertySwagger;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,11 +17,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/delta/user-properties/{userId}")
 @RequiredArgsConstructor
-public class UserPropertyController {
+public class UserPropertyController implements UserPropertySwagger {
 
     private final UserPropertyService userPropertyService;
     private final UserPropertyMapper userPropertyMapper;
 
+    @Override
     @PostMapping
     public ResponseEntity<UserPropertyIO> create(
             @PathVariable Integer userId,
@@ -37,6 +39,7 @@ public class UserPropertyController {
                 .body(userPropertyService.create(io));
     }
 
+    @Override
     @GetMapping
     public ResponseEntity<List<UserPropertyIO>> findAll(
             @PathVariable Integer userId
@@ -47,6 +50,7 @@ public class UserPropertyController {
         );
     }
 
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<UserPropertyIO> findById(
             @PathVariable Integer userId,
@@ -58,6 +62,7 @@ public class UserPropertyController {
         );
     }
 
+    @Override
     @PutMapping("/{id}")
     public ResponseEntity<UserPropertyIO> update(
             @PathVariable Integer userId,
@@ -76,6 +81,7 @@ public class UserPropertyController {
         );
     }
 
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Integer userId,

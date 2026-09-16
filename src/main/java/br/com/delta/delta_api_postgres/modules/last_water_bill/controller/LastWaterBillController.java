@@ -5,6 +5,7 @@ import br.com.delta.delta_api_postgres.modules.last_water_bill.dto.request.Creat
 import br.com.delta.delta_api_postgres.modules.last_water_bill.dto.request.UpdateLastWaterBillRequest;
 import br.com.delta.delta_api_postgres.modules.last_water_bill.mapper.LastWaterBillMapper;
 import br.com.delta.delta_api_postgres.modules.last_water_bill.service.LastWaterBillService;
+import br.com.delta.delta_api_postgres.modules.last_water_bill.swagger.LastWaterBillSwagger;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,11 +17,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/delta/last-water-bills")
 @RequiredArgsConstructor
-public class LastWaterBillController {
+public class LastWaterBillController implements LastWaterBillSwagger {
 
     private final LastWaterBillService lastWaterBillService;
     private final LastWaterBillMapper lastWaterBillMapper;
 
+    @Override
     @PostMapping
     public ResponseEntity<LastWaterBillIO> create(
             @Valid @RequestBody CreateLastWaterBillRequest request
@@ -33,6 +35,7 @@ public class LastWaterBillController {
                 .body(lastWaterBillService.create(io));
     }
 
+    @Override
     @GetMapping
     public ResponseEntity<List<LastWaterBillIO>> findAll() {
 
@@ -41,6 +44,7 @@ public class LastWaterBillController {
         );
     }
 
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<LastWaterBillIO> findById(
             @PathVariable Integer id
@@ -51,6 +55,7 @@ public class LastWaterBillController {
         );
     }
 
+    @Override
     @PutMapping("/{id}")
     public ResponseEntity<LastWaterBillIO> update(
             @PathVariable Integer id,
@@ -64,6 +69,7 @@ public class LastWaterBillController {
         );
     }
 
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
 
