@@ -50,6 +50,7 @@ public class PropertyController implements PropertySwagger {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Override
     @GetMapping("/{propertyId}/watercost")
     public ResponseEntity<WaterCostIO> calculateWaterCost(@PathVariable Integer propertyId, @RequestParam BigDecimal consumptionM3, @RequestParam(required = false)
     LocalDate referenceDate) {
