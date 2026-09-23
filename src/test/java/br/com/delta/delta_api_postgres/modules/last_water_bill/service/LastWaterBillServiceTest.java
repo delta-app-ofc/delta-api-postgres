@@ -150,13 +150,22 @@ class LastWaterBillServiceTest {
         LastWaterBill updatedBill = bill(BILL_ID, USER_ID, MONTH);
         updatedBill.setTotalValue(input.totalValue());
         updatedBill.setM3Value(input.m3Value());
+
+        when(lastWaterBillRepository.findById(BILL_ID)).thenReturn(Optional.of(bill));
+        when(lastWaterBillRepository.save(bill)).thenReturn(updatedBill);
+        when(lastWaterBillMapper.toIO(updatedBill)).thenReturn(input);
+
+        LastWaterBillIO result = lastWaterBillService.update(BILL_ID, input);
+
+        assertThat(result).isEqualTo(input);
+
         LastWaterBillIO expected = input;
 
         when(lastWaterBillRepository.findById(BILL_ID)).thenReturn(Optional.of(bill));
         when(lastWaterBillRepository.save(bill)).thenReturn(updatedBill);
         when(lastWaterBillMapper.toIO(updatedBill)).thenReturn(expected);
 
-        LastWaterBillIO result = lastWaterBillService.update(BILL_ID, input);
+        result = lastWaterBillService.update(BILL_ID, input);
 
         assertThat(result).isEqualTo(expected);
         verify(lastWaterBillRepository, never()).existsByUserIdAndMonth(any(), any());
@@ -177,14 +186,21 @@ class LastWaterBillServiceTest {
         );
         LastWaterBill bill = bill(BILL_ID, USER_ID, MONTH);
         LastWaterBill updatedBill = bill(BILL_ID, newUserId, newMonth);
+
         LastWaterBillIO expected = input;
 
         when(lastWaterBillRepository.findById(BILL_ID)).thenReturn(Optional.of(bill));
         when(lastWaterBillRepository.existsByUserIdAndMonth(newUserId, newMonth)).thenReturn(false);
         when(lastWaterBillRepository.save(bill)).thenReturn(updatedBill);
-        when(lastWaterBillMapper.toIO(updatedBill)).thenReturn(expected);
+        when(lastWaterBillMapper.toIO(updatedBill)).thenReturn(input);
 
         LastWaterBillIO result = lastWaterBillService.update(BILL_ID, input);
+
+        assertThat(result).isEqualTo(input);
+
+        when(lastWaterBillMapper.toIO(updatedBill)).thenReturn(expected);
+
+        result = lastWaterBillService.update(BILL_ID, input);
 
         assertThat(result).isEqualTo(expected);
         verify(lastWaterBillRepository).existsByUserIdAndMonth(newUserId, newMonth);
