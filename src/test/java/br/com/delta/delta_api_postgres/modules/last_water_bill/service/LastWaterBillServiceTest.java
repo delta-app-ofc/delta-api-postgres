@@ -158,6 +158,16 @@ class LastWaterBillServiceTest {
         LastWaterBillIO result = lastWaterBillService.update(BILL_ID, input);
 
         assertThat(result).isEqualTo(input);
+
+        LastWaterBillIO expected = input;
+
+        when(lastWaterBillRepository.findById(BILL_ID)).thenReturn(Optional.of(bill));
+        when(lastWaterBillRepository.save(bill)).thenReturn(updatedBill);
+        when(lastWaterBillMapper.toIO(updatedBill)).thenReturn(expected);
+
+        result = lastWaterBillService.update(BILL_ID, input);
+
+        assertThat(result).isEqualTo(expected);
         verify(lastWaterBillRepository, never()).existsByUserIdAndMonth(any(), any());
         verify(lastWaterBillMapper).updateEntity(bill, input);
         verify(lastWaterBillRepository).save(bill);
@@ -177,6 +187,8 @@ class LastWaterBillServiceTest {
         LastWaterBill bill = bill(BILL_ID, USER_ID, MONTH);
         LastWaterBill updatedBill = bill(BILL_ID, newUserId, newMonth);
 
+        LastWaterBillIO expected = input;
+
         when(lastWaterBillRepository.findById(BILL_ID)).thenReturn(Optional.of(bill));
         when(lastWaterBillRepository.existsByUserIdAndMonth(newUserId, newMonth)).thenReturn(false);
         when(lastWaterBillRepository.save(bill)).thenReturn(updatedBill);
@@ -185,6 +197,12 @@ class LastWaterBillServiceTest {
         LastWaterBillIO result = lastWaterBillService.update(BILL_ID, input);
 
         assertThat(result).isEqualTo(input);
+
+        when(lastWaterBillMapper.toIO(updatedBill)).thenReturn(expected);
+
+        result = lastWaterBillService.update(BILL_ID, input);
+
+        assertThat(result).isEqualTo(expected);
         verify(lastWaterBillRepository).existsByUserIdAndMonth(newUserId, newMonth);
         verify(lastWaterBillMapper).updateEntity(bill, input);
         verify(lastWaterBillRepository).save(bill);

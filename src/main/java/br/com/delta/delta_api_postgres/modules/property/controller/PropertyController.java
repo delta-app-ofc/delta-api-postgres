@@ -1,17 +1,22 @@
 package br.com.delta.delta_api_postgres.modules.property.controller;
 
 import br.com.delta.delta_api_postgres.modules.property.dto.io.PropertyIO;
+import br.com.delta.delta_api_postgres.modules.property.dto.io.WaterCostIO;
 import br.com.delta.delta_api_postgres.modules.property.dto.request.CreatePropertyRequest;
 import br.com.delta.delta_api_postgres.modules.property.dto.request.UpdatePropertyRequest;
 import br.com.delta.delta_api_postgres.modules.property.mapper.PropertyMapper;
 import br.com.delta.delta_api_postgres.modules.property.service.PropertyService;
+import br.com.delta.delta_api_postgres.modules.property.service.WaterCostService;
 import br.com.delta.delta_api_postgres.modules.property.swagger.PropertySwagger;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -19,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PropertyController implements PropertySwagger {
     private final PropertyService propertyService;
+    private final WaterCostService waterCostService;
     private final PropertyMapper propertyMapper;
 
     @Override
@@ -42,6 +48,14 @@ public class PropertyController implements PropertySwagger {
     public ResponseEntity<PropertyIO> findById(@PathVariable Integer id) {
         PropertyIO response = propertyService.findById(id);
 
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    @GetMapping("/{propertyId}/watercost")
+    public ResponseEntity<WaterCostIO> calculateWaterCost(@PathVariable Integer propertyId, @RequestParam @Positive BigDecimal consumptionM3, @RequestParam(required = false)
+    LocalDate referenceDate) {
+        WaterCostIO response = waterCostService.calculateWaterCost(propertyId, consumptionM3, referenceDate);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
