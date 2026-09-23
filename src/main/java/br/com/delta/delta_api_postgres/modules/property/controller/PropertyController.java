@@ -9,6 +9,7 @@ import br.com.delta.delta_api_postgres.modules.property.service.PropertyService;
 import br.com.delta.delta_api_postgres.modules.property.service.WaterCostService;
 import br.com.delta.delta_api_postgres.modules.property.swagger.PropertySwagger;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +53,7 @@ public class PropertyController implements PropertySwagger {
 
     @Override
     @GetMapping("/{propertyId}/watercost")
-    public ResponseEntity<WaterCostIO> calculateWaterCost(@PathVariable Integer propertyId, @RequestParam BigDecimal consumptionM3, @RequestParam(required = false)
+    public ResponseEntity<WaterCostIO> calculateWaterCost(@PathVariable Integer propertyId, @RequestParam @Positive BigDecimal consumptionM3, @RequestParam(required = false)
     LocalDate referenceDate) {
         WaterCostIO response = waterCostService.calculateWaterCost(propertyId, consumptionM3, referenceDate);
         return ResponseEntity.status(HttpStatus.OK).body(response);
