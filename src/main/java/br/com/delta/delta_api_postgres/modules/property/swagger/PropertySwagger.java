@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
@@ -50,7 +52,7 @@ public interface PropertySwagger {
                     description = "Erro inesperado durante o cadastro da propriedade"
             )
     })
-    ResponseEntity<PropertyIO> create(CreatePropertyRequest request);
+    ResponseEntity<PropertyIO> create(@Valid CreatePropertyRequest request);
 
     @Operation(summary = "Listar propriedades")
     @ApiResponse(responseCode = "200", description = "Propriedades encontradas")
@@ -88,6 +90,7 @@ public interface PropertySwagger {
                     required = true,
                     example = "15.5"
             )
+            @Positive
             BigDecimal consumptionM3,
             @Parameter(
                     description = "Data usada para localizar a tarifa vigente, no formato AAAA-MM-DD",
@@ -104,7 +107,7 @@ public interface PropertySwagger {
     })
     ResponseEntity<PropertyIO> update(
             Integer id,
-            UpdatePropertyRequest request
+            @Valid UpdatePropertyRequest request
     );
 
     @Operation(summary = "Excluir propriedade")
