@@ -22,17 +22,20 @@ public class PropertyService {
     private final AddressRepository addressRepository;
     private final PropertyMapper propertyMapper;
 
-    public PropertyIO create(PropertyIO request) {
-        Address address = addressRepository.findById(request.addressId()).orElseThrow(
-                () -> new ResourceNotFoundException("Endereço nao encontrado")
+    @Transactional
+    public PropertyIO create(Integer userId, PropertyIO request) {
+        Integer propertyId = propertyRepository.registerProperty(
+                userId,
+                request.name(),
+                request.type().name(),
+                request.classification().name(),
+                request.addressId()
         );
-        if (propertyRepository.existsByName(request.name())) {
-            throw new ResourceAlreadyExistsException("Propriedade ja cadastrada, o nome deve ser único");
-        }
-        Property property = propertyMapper.toEntity(request, address);
 
-        Property savedProperty = propertyRepository.save(property);
-        return propertyMapper.toIO(savedProperty);
+        Property property = propertyRepository.findById(propertyId).orElseThrow(
+                () -> new IllegalStateException("A procedure não retornou uma propriedade válida")
+        );
+        return propertyMapper.toIO(property);
     }
     @Transactional(readOnly = true)
     public List<PropertyIO> findAll() {

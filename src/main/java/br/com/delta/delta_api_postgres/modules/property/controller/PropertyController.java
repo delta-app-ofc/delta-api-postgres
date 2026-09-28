@@ -30,7 +30,8 @@ public class PropertyController implements PropertySwagger {
     @Override
     @PostMapping
     public ResponseEntity<PropertyIO> create(@RequestBody @Valid CreatePropertyRequest request) {
-        PropertyIO response = propertyService.create(propertyMapper.fromCreateToIO(request));
+        PropertyIO response = propertyService.create(request.userId(),
+                propertyMapper.fromCreateToIO(request));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
