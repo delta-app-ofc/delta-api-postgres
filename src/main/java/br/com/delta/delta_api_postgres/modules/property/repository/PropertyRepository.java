@@ -4,6 +4,7 @@ import br.com.delta.delta_api_postgres.modules.property.entity.Property;
 import br.com.delta.delta_api_postgres.modules.property.repository.projection.WaterCostProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
@@ -30,5 +31,17 @@ public interface PropertyRepository extends JpaRepository<Property, Integer> {
             @Param("propertyId") Integer propertyId,
             @Param("consumptionM3") BigDecimal consumptionM3,
             @Param("referenceDate") LocalDate referenceDate
+    );
+
+    @Procedure(
+            procedureName = "sp_register_property",
+            outputParameterName = "v_property_id"
+    )
+    Integer registerProperty(
+            @Param("p_user_id") Integer userId,
+            @Param("p_name") String name,
+            @Param("p_type") String type,
+            @Param("p_classification") String classification,
+            @Param("p_address_id") Integer addressId
     );
 }

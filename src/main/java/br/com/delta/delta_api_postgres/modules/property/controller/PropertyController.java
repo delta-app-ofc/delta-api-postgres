@@ -8,8 +8,6 @@ import br.com.delta.delta_api_postgres.modules.property.mapper.PropertyMapper;
 import br.com.delta.delta_api_postgres.modules.property.service.PropertyService;
 import br.com.delta.delta_api_postgres.modules.property.service.WaterCostService;
 import br.com.delta.delta_api_postgres.modules.property.swagger.PropertySwagger;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,8 +27,9 @@ public class PropertyController implements PropertySwagger {
 
     @Override
     @PostMapping
-    public ResponseEntity<PropertyIO> create(@RequestBody @Valid CreatePropertyRequest request) {
-        PropertyIO response = propertyService.create(propertyMapper.fromCreateToIO(request));
+    public ResponseEntity<PropertyIO> create(@RequestBody CreatePropertyRequest request) {
+        PropertyIO response = propertyService.create(request.userId(),
+                propertyMapper.fromCreateToIO(request));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -53,7 +52,7 @@ public class PropertyController implements PropertySwagger {
 
     @Override
     @GetMapping("/{propertyId}/watercost")
-    public ResponseEntity<WaterCostIO> calculateWaterCost(@PathVariable Integer propertyId, @RequestParam @Positive BigDecimal consumptionM3, @RequestParam(required = false)
+    public ResponseEntity<WaterCostIO> calculateWaterCost(@PathVariable Integer propertyId, @RequestParam BigDecimal consumptionM3, @RequestParam(required = false)
     LocalDate referenceDate) {
         WaterCostIO response = waterCostService.calculateWaterCost(propertyId, consumptionM3, referenceDate);
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -61,7 +60,7 @@ public class PropertyController implements PropertySwagger {
 
     @Override
     @PutMapping("/{id}")
-    public ResponseEntity<PropertyIO> update(@PathVariable Integer id, @RequestBody @Valid
+    public ResponseEntity<PropertyIO> update(@PathVariable Integer id, @RequestBody
     UpdatePropertyRequest request) {
 
         PropertyIO response = propertyService.update(id, propertyMapper.fromUpdateRequest(id, request));

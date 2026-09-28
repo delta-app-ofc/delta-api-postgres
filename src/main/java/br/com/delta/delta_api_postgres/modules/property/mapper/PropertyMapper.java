@@ -5,6 +5,7 @@ import br.com.delta.delta_api_postgres.modules.property.dto.io.PropertyIO;
 import br.com.delta.delta_api_postgres.modules.property.dto.request.CreatePropertyRequest;
 import br.com.delta.delta_api_postgres.modules.property.dto.request.UpdatePropertyRequest;
 import br.com.delta.delta_api_postgres.modules.property.entity.Property;
+import br.com.delta.delta_api_postgres.modules.property.entity.PropertyClassificationEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,27 +39,36 @@ public class PropertyMapper {
                 property.getId(),
                 property.getName(),
                 property.getType(),
-                property.getClassification(),
+                property.getClassification().getName(),
                 property.getAddress().getId(),
                 property.getRegistrationDate()
         );
     }
 
-    public Property toEntity(PropertyIO io, Address address) {
+    public Property toEntity(
+            PropertyIO io,
+            Address address,
+            PropertyClassificationEntity classification
+    ) {
         return new Property(
                 io.id(),
                 io.name(),
                 io.type(),
-                io.classification(),
+                classification,
                 address,
                 io.registrationDate()
         );
     }
 
-    public void updateEntity(Property property, PropertyIO io, Address address) {
+    public void updateEntity(
+            Property property,
+            PropertyIO io,
+            Address address,
+            PropertyClassificationEntity classification
+    ) {
         property.setName(io.name());
         property.setType(io.type());
-        property.setClassification(io.classification());
+        property.setClassification(classification);
         property.setAddress(address);
     }
 }
