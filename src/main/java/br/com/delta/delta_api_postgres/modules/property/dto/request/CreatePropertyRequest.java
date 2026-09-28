@@ -32,7 +32,7 @@ public record CreatePropertyRequest(
 
         @Schema(
                 description = "Classificação usada para determinar a categoria tarifária",
-                example = "RESIDENCIAL"
+                example = "RESIDENCIAL_NORMAL"
         )
         @NotNull
         PropertyClassification classification,
