@@ -9,6 +9,8 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record CreatePropertyRequest(
+        @NotNull @Positive
+        Integer userId,
         @NotBlank @Size(max = 100)
         String name,
         @NotNull
