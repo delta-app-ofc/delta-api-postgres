@@ -21,11 +21,34 @@ import java.util.List;
 )
 public interface PropertySwagger {
 
-    @Operation(summary = "Cadastrar propriedade")
+    @Operation(
+            summary = "Cadastrar propriedade",
+            description = "Cadastra uma propriedade e cria, na mesma operação, o vínculo " +
+                    "com o usuário informado. O usuário deve existir e estar ativo, e o " +
+                    "endereço deve estar previamente cadastrado. A operação é executada " +
+                    "por uma procedure no banco de dados e retorna a propriedade criada."
+    )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Propriedade cadastrada"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Propriedade cadastrada e associada ao usuário"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados da propriedade ausentes ou inválidos"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Usuário, endereço ou classificação não encontrados"
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Propriedade já cadastrada ou conflito de integridade"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro inesperado durante o cadastro da propriedade"
+            )
     })
     ResponseEntity<PropertyIO> create(CreatePropertyRequest request);
 
