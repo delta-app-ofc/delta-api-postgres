@@ -3,7 +3,9 @@ package br.com.delta.delta_api_postgres.modules.user_property.service;
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.property.entity.Property;
+import br.com.delta.delta_api_postgres.modules.property.entity.PropertyClassificationEntity;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyClassification;
+import br.com.delta.delta_api_postgres.modules.property.enums.PropertyClassificationGroup;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyType;
 import br.com.delta.delta_api_postgres.modules.property.repository.PropertyRepository;
 import br.com.delta.delta_api_postgres.modules.user_property.dto.io.UserPropertyIO;
@@ -362,7 +364,7 @@ class UserPropertyServiceTest {
                 id,
                 name,
                 PropertyType.CASA,
-                PropertyClassification.RESIDENCIAL,
+                new PropertyClassificationEntity(1, PropertyClassification.RESIDENCIAL_NORMAL, PropertyClassificationGroup.RESIDENCIAL),
                 null,
                 LocalDate.of(2026, 1, 1)
         );
