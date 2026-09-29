@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
+import java.time.Duration;
 import java.util.List;
 
 @Getter
@@ -19,4 +20,5 @@ public class AuthProperties {
     private String publicKey = "";
     private List<String> allowedOrigins = List.of("http://localhost:5173", "http://localhost:3000");
     @Min(1) private int attemptsPerMinute = 30;
+    @NotNull private Duration refreshTtl = Duration.ofDays(30);
 }

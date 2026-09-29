@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.region_rate.entity;
 
+import br.com.delta.delta_api_postgres.modules.region.entity.Region;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.device.entity;
 
+import br.com.delta.delta_api_postgres.modules.property.entity.Property;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

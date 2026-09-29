@@ -1,7 +1,8 @@
 package br.com.delta.delta_api_postgres.modules.region_rate.controller;
 
 import br.com.delta.delta_api_postgres.modules.region_rate.dto.io.RegionRateIO;
-import br.com.delta.delta_api_postgres.modules.region_rate.service.RegionRateService;
+import br.com.delta.delta_api_postgres.modules.region_rate.services.RegionRateService;
+import br.com.delta.delta_api_postgres.modules.region_rate.swagger.RegionRateSwagger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +16,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/delta/region-rate")
 @RequiredArgsConstructor
-public class RegionRateController {
+public class RegionRateController implements RegionRateSwagger {
 
     private final RegionRateService regionRateService;
 
+    @Override
     @GetMapping("/{regionId}")
     public ResponseEntity<List<RegionRateIO>> findByRegion(
             @PathVariable Integer regionId,
