@@ -1,6 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.property.mapper;
 
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
+import br.com.delta.delta_api_postgres.modules.organization.entity.Organization;
 import br.com.delta.delta_api_postgres.modules.property.dto.io.PropertyIO;
 import br.com.delta.delta_api_postgres.modules.property.dto.request.CreatePropertyRequest;
 import br.com.delta.delta_api_postgres.modules.property.dto.request.UpdatePropertyRequest;
@@ -17,6 +18,8 @@ public class PropertyMapper {
                 request.type(),
                 request.classification(),
                 request.addressId(),
+                request.organizationId(),
+                request.builtAreaM2(),
                 null
         );
     }
@@ -30,6 +33,8 @@ public class PropertyMapper {
                 request.type(),
                 request.classification(),
                 request.addressId(),
+                request.organizationId(),
+                request.builtAreaM2(),
                 null
         );
     }
@@ -41,22 +46,9 @@ public class PropertyMapper {
                 property.getType(),
                 property.getClassification().getName(),
                 property.getAddress().getId(),
+                property.getOrganization() != null ? property.getOrganization().getId() : null,
+                property.getBuiltAreaM2(),
                 property.getRegistrationDate()
-        );
-    }
-
-    public Property toEntity(
-            PropertyIO io,
-            Address address,
-            PropertyClassificationEntity classification
-    ) {
-        return new Property(
-                io.id(),
-                io.name(),
-                io.type(),
-                classification,
-                address,
-                io.registrationDate()
         );
     }
 
@@ -64,11 +56,14 @@ public class PropertyMapper {
             Property property,
             PropertyIO io,
             Address address,
-            PropertyClassificationEntity classification
+            PropertyClassificationEntity classification,
+            Organization organization
     ) {
         property.setName(io.name());
         property.setType(io.type());
         property.setClassification(classification);
         property.setAddress(address);
+        property.setOrganization(organization);
+        property.setBuiltAreaM2(io.builtAreaM2());
     }
 }
