@@ -1,12 +1,13 @@
 package br.com.delta.delta_api_postgres.modules.property.services;
 
-import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
 import br.com.delta.delta_api_postgres.modules.property.dto.io.PropertyIO;
 import br.com.delta.delta_api_postgres.modules.property.entity.Property;
+import br.com.delta.delta_api_postgres.modules.property.entity.PropertyClassificationEntity;
 import br.com.delta.delta_api_postgres.modules.property.mapper.PropertyMapper;
+import br.com.delta.delta_api_postgres.modules.property.repository.PropertyClassificationRepository;
 import br.com.delta.delta_api_postgres.modules.property.repository.PropertyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,20 +19,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PropertyService {
     private final PropertyRepository propertyRepository;
+    private final PropertyClassificationRepository propertyClassificationRepository;
     private final AddressRepository addressRepository;
     private final PropertyMapper propertyMapper;
 
-    public PropertyIO create(PropertyIO request) {
-        Address address = addressRepository.findById(request.addressId()).orElseThrow(
-                () -> new ResourceNotFoundException("Endereço nao encontrado")
+    @Transactional
+    public PropertyIO create(Integer userId, PropertyIO request) {
+        Integer propertyId = propertyRepository.registerProperty(
+                userId,
+                request.name(),
+                request.type().name(),
+                request.classification().name(),
+                request.addressId()
         );
-        if (propertyRepository.existsByName(request.name())) {
-            throw new ResourceAlreadyExistsException("Propriedade ja cadastrada, o nome deve ser único");
-        }
-        Property property = propertyMapper.toEntity(request, address);
 
-        Property savedProperty = propertyRepository.save(property);
-        return propertyMapper.toIO(savedProperty);
+        Property property = propertyRepository.findById(propertyId).orElseThrow(
+                () -> new IllegalStateException("A procedure não retornou uma propriedade válida")
+        );
+        return propertyMapper.toIO(property);
     }
     @Transactional(readOnly = true)
     public List<PropertyIO> findAll() {
@@ -51,7 +56,11 @@ public class PropertyService {
         Address address = addressRepository.findById(request.addressId()).orElseThrow(
                 () -> new ResourceNotFoundException("Endereço nao encontrado")
         );
-        propertyMapper.updateEntity(property, request, address);
+        PropertyClassificationEntity classification = propertyClassificationRepository
+                .findByName(request.classification())
+                .orElseThrow(() -> new ResourceNotFoundException("Classificação não encontrada"));
+
+        propertyMapper.updateEntity(property, request, address, classification);
 
         Property updatedProperty = propertyRepository.save(property);
 

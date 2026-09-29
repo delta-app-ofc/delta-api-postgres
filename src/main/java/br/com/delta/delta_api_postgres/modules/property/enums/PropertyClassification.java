@@ -1,6 +1,12 @@
 package br.com.delta.delta_api_postgres.modules.property.enums;
 
 public enum PropertyClassification {
-    RESIDENCIAL,
-    COMERCIAL
+    RESIDENCIAL_NORMAL,
+    COMERCIAL_ENTIDADE_ASSISTENCIA_SOCIAL,
+    COMERCIAL_NORMAL_INDUSTRIAL,
+    RESIDENCIAL_ESPECIAL,
+    COMERCIAL_ESPECIAL,
+    RESIDENCIAL_FAVELA,
+    PUBLICA_COM_CONTRATO,
+    RESIDENCIAL_SOCIAL,
 }
