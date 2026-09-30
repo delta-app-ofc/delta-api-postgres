@@ -52,6 +52,24 @@ public class PropertyMapper {
         );
     }
 
+    public Property toEntity(
+            PropertyIO io,
+            Address address,
+            PropertyClassificationEntity classification,
+            Organization organization
+    ) {
+        return new Property(
+                io.id(),
+                io.name(),
+                io.type(),
+                classification,
+                address,
+                organization,
+                io.builtAreaM2(),
+                io.registrationDate()
+        );
+    }
+
     public void updateEntity(
             Property property,
             PropertyIO io,
