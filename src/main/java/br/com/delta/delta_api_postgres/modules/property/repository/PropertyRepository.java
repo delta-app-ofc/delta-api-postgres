@@ -42,6 +42,8 @@ public interface PropertyRepository extends JpaRepository<Property, Integer> {
             @Param("p_name") String name,
             @Param("p_type") String type,
             @Param("p_classification") String classification,
-            @Param("p_address_id") Integer addressId
+            @Param("p_address_id") Integer addressId,
+            @Param("p_organization_id") Integer organizationId,
+            @Param("p_built_area_m2") BigDecimal builtAreaM2
     );
 }
