@@ -41,7 +41,7 @@ public interface PropertySwagger {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "Usuário, endereço ou classificação não encontrados"
+                    description = "Usuário, endereço, classificação ou organização não encontrados"
             ),
             @ApiResponse(
                     responseCode = "409",
@@ -103,7 +103,7 @@ public interface PropertySwagger {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Propriedade atualizada"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "404", description = "Propriedade ou endereço não encontrado")
+            @ApiResponse(responseCode = "404", description = "Propriedade, endereço, classificação ou organização não encontrados")
     })
     ResponseEntity<PropertyIO> update(
             Integer id,

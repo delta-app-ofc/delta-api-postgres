@@ -366,6 +366,8 @@ class UserPropertyServiceTest {
                 PropertyType.CASA,
                 new PropertyClassificationEntity(1, PropertyClassification.RESIDENCIAL_NORMAL, PropertyClassificationGroup.RESIDENCIAL),
                 null,
+                null,
+                null,
                 LocalDate.of(2026, 1, 1)
         );
     }
