@@ -171,7 +171,7 @@ class RegionRateServiceTest {
     ) {
         return new RegionRateIO(
                 id,
-                RegionName.SUL,
+                RegionName.GRANDE_SP,
                 m3Value,
                 initialValidity,
                 finalValidity

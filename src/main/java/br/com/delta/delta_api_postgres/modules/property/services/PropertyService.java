@@ -3,6 +3,8 @@ package br.com.delta.delta_api_postgres.modules.property.services;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
+import br.com.delta.delta_api_postgres.modules.organization.entity.Organization;
+import br.com.delta.delta_api_postgres.modules.organization.repository.OrganizationRepository;
 import br.com.delta.delta_api_postgres.modules.property.dto.io.PropertyIO;
 import br.com.delta.delta_api_postgres.modules.property.entity.Property;
 import br.com.delta.delta_api_postgres.modules.property.entity.PropertyClassificationEntity;
@@ -21,6 +23,7 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final PropertyClassificationRepository propertyClassificationRepository;
     private final AddressRepository addressRepository;
+    private final OrganizationRepository organizationRepository;
     private final PropertyMapper propertyMapper;
 
     @Transactional
@@ -30,7 +33,9 @@ public class PropertyService {
                 request.name(),
                 request.type().name(),
                 request.classification().name(),
-                request.addressId()
+                request.addressId(),
+                request.organizationId(),
+                request.builtAreaM2()
         );
 
         Property property = propertyRepository.findById(propertyId).orElseThrow(
@@ -60,7 +65,14 @@ public class PropertyService {
                 .findByName(request.classification())
                 .orElseThrow(() -> new ResourceNotFoundException("Classificação não encontrada"));
 
-        propertyMapper.updateEntity(property, request, address, classification);
+        Organization organization = null;
+        if (request.organizationId() != null) {
+            organization = organizationRepository.findById(request.organizationId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Organização não encontrada")
+            );
+        }
+
+        propertyMapper.updateEntity(property, request, address, classification, organization);
 
         Property updatedProperty = propertyRepository.save(property);
 

@@ -1,6 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.property.entity;
 
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
+import br.com.delta.delta_api_postgres.modules.organization.entity.Organization;
 import br.com.delta.delta_api_postgres.modules.property.enums.PropertyType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -35,6 +37,13 @@ public class Property {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "address_id", nullable = false)
     private Address address;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
+
+    @Column(name = "built_area_m2", precision = 10, scale = 2)
+    private BigDecimal builtAreaM2;
 
     @Column(name = "registration_date", nullable = false, updatable = false)
     private LocalDate registrationDate;
