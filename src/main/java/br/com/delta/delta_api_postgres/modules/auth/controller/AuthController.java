@@ -1,7 +1,8 @@
 package br.com.delta.delta_api_postgres.modules.auth.controller;
 
 import br.com.delta.delta_api_postgres.modules.auth.security.CurrentUser;
-import br.com.delta.delta_api_postgres.modules.auth.services.*;
+import br.com.delta.delta_api_postgres.modules.auth.service.AuthService;
+import br.com.delta.delta_api_postgres.modules.auth.service.TokenService;
 import br.com.delta.delta_api_postgres.modules.auth.swagger.AuthSwagger;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;

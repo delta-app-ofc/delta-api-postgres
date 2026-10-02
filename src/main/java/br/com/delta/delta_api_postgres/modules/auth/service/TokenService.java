@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.modules.auth.services;
+package br.com.delta.delta_api_postgres.modules.auth.service;
 
 import br.com.delta.delta_api_postgres.modules.auth.config.AuthProperties;
 import br.com.delta.delta_api_postgres.modules.auth.entity.AuthUser;

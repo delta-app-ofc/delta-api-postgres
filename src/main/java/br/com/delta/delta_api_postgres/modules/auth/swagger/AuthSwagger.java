@@ -1,6 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.auth.swagger;
 
-import br.com.delta.delta_api_postgres.modules.auth.services.AuthService;
+import br.com.delta.delta_api_postgres.modules.auth.service.AuthService;
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.LoginRequest;
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.AccessTokenResponse;
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.RefreshTokenRequest;

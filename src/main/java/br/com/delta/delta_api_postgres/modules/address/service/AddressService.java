@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.modules.address.services;
+package br.com.delta.delta_api_postgres.modules.address.service;
 
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.address.dto.io.AddressIO;

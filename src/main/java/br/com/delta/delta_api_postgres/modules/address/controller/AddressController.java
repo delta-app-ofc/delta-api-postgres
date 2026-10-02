@@ -4,7 +4,7 @@ import br.com.delta.delta_api_postgres.modules.address.dto.io.AddressIO;
 import br.com.delta.delta_api_postgres.modules.address.dto.request.CreateAddressRequest;
 import br.com.delta.delta_api_postgres.modules.address.dto.request.UpdateAddressRequest;
 import br.com.delta.delta_api_postgres.modules.address.mapper.AddressMapper;
-import br.com.delta.delta_api_postgres.modules.address.services.AddressService;
+import br.com.delta.delta_api_postgres.modules.address.service.AddressService;
 import br.com.delta.delta_api_postgres.modules.address.swagger.AddressSwagger;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

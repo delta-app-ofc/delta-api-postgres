@@ -4,7 +4,7 @@ import br.com.delta.delta_api_postgres.modules.habit.dto.io.UserHabitIO;
 import br.com.delta.delta_api_postgres.modules.habit.dto.requests.CreateUserHabitRequest;
 import br.com.delta.delta_api_postgres.modules.habit.dto.requests.UpdateUserHabitRequest;
 import br.com.delta.delta_api_postgres.modules.habit.mapper.UserHabitMapper;
-import br.com.delta.delta_api_postgres.modules.habit.services.UserHabitService;
+import br.com.delta.delta_api_postgres.modules.habit.service.UserHabitService;
 import br.com.delta.delta_api_postgres.modules.habit.swagger.UserHabitSwagger;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.modules.region_rate.services;
+package br.com.delta.delta_api_postgres.modules.region_rate.service;
 
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.region_rate.dto.io.RegionRateIO;

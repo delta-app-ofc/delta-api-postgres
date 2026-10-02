@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.modules.property.services;
+package br.com.delta.delta_api_postgres.modules.property.service;
 
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;

@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.modules.auth.services;
+package br.com.delta.delta_api_postgres.modules.auth.service;
 
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.modules.auth.entity.AuthUser;

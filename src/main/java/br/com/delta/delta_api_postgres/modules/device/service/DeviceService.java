@@ -1,4 +1,4 @@
-package br.com.delta.delta_api_postgres.modules.device.services;
+package br.com.delta.delta_api_postgres.modules.device.service;
 
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
