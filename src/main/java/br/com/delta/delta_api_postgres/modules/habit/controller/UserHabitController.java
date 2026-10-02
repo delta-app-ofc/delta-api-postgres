@@ -5,6 +5,7 @@ import br.com.delta.delta_api_postgres.modules.habit.dto.requests.CreateUserHabi
 import br.com.delta.delta_api_postgres.modules.habit.dto.requests.UpdateUserHabitRequest;
 import br.com.delta.delta_api_postgres.modules.habit.mapper.UserHabitMapper;
 import br.com.delta.delta_api_postgres.modules.habit.service.UserHabitService;
+import br.com.delta.delta_api_postgres.modules.habit.swagger.UserHabitSwagger;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,11 +17,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/delta/habits/{userId}")
 @RequiredArgsConstructor
-public class UserHabitController {
+public class UserHabitController implements UserHabitSwagger {
 
     private final UserHabitService userHabitService;
     private final UserHabitMapper userHabitMapper;
 
+    @Override
     @PostMapping
     public ResponseEntity<UserHabitIO> create(
             @PathVariable Integer userId,
@@ -37,6 +39,7 @@ public class UserHabitController {
                 .body(userHabitService.create(io));
     }
 
+    @Override
     @GetMapping
     public ResponseEntity<List<UserHabitIO>> findAll(
             @PathVariable Integer userId
@@ -47,6 +50,7 @@ public class UserHabitController {
         );
     }
 
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<UserHabitIO> findById(
             @PathVariable Integer userId,
@@ -58,6 +62,7 @@ public class UserHabitController {
         );
     }
 
+    @Override
     @PutMapping("/{id}")
     public ResponseEntity<UserHabitIO> update(
             @PathVariable Integer userId,
@@ -76,6 +81,7 @@ public class UserHabitController {
         );
     }
 
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Integer userId,
