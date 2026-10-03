@@ -15,7 +15,9 @@ public class AddressMapper {
                 address.getRegion().getId(),
                 address.getCep(),
                 address.getCity(),
-                address.getState()
+                address.getState(),
+                address.getLatitude(),
+                address.getLongitude()
         );
     }
 
@@ -25,7 +27,9 @@ public class AddressMapper {
                 region,
                 addressIO.cep(),
                 addressIO.city(),
-                addressIO.state()
+                addressIO.state(),
+                addressIO.latitude(),
+                addressIO.longitude()
         );
     }
 
@@ -35,7 +39,9 @@ public class AddressMapper {
                 createAddressRequest.regionId(),
                 createAddressRequest.cep(),
                 createAddressRequest.city(),
-                createAddressRequest.state()
+                createAddressRequest.state(),
+                createAddressRequest.latitude(),
+                createAddressRequest.longitude()
         );
     }
 
@@ -45,7 +51,9 @@ public class AddressMapper {
                 updateAddressRequest.regionId(),
                 updateAddressRequest.cep(),
                 updateAddressRequest.city(),
-                updateAddressRequest.state()
+                updateAddressRequest.state(),
+                updateAddressRequest.latitude(),
+                updateAddressRequest.longitude()
         );
     }
 
@@ -54,5 +62,7 @@ public class AddressMapper {
         address.setCep(io.cep());
         address.setCity(io.city());
         address.setState(io.state());
+        address.setLatitude(io.latitude());
+        address.setLongitude(io.longitude());
     }
 }

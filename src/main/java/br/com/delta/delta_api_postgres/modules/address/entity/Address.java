@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "tb_address")
@@ -26,4 +27,8 @@ public class Address {
     private String city;
     @Column(name = "state", nullable = false, length = 30)
     private String state;
+    @Column(name = "latitude", precision = 8, scale = 6)
+    private BigDecimal latitude;
+    @Column(name = "longitude", precision = 9, scale = 6)
+    private BigDecimal longitude;
 }
