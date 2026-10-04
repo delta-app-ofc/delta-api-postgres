@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.auth.controller;
 
+import br.com.delta.delta_api_postgres.modules.auth.dto.CompleteRegistrationRequest;
+import br.com.delta.delta_api_postgres.modules.auth.service.RegistrationCompletionService;
 import br.com.delta.delta_api_postgres.modules.auth.security.CurrentUser;
 import br.com.delta.delta_api_postgres.modules.auth.service.AuthService;
 import br.com.delta.delta_api_postgres.modules.auth.service.TokenService;
@@ -17,6 +19,7 @@ import java.time.LocalDate;
 public class AuthController implements AuthSwagger {
     private final AuthService auth;
     private final CurrentUser currentUser;
+    private final RegistrationCompletionService completion;
 
     public record LoginRequest(@NotBlank @Email @Size(max = 255) String email,
                                @NotBlank @Size(max = 256) String password) {}
@@ -31,8 +34,8 @@ public class AuthController implements AuthSwagger {
     public record AccessTokenResponse(String accessToken, String tokenType, long expiresIn) {}
 
     @Override
-    @PostMapping("/register")
-    public ResponseEntity<TokenResponse> register(@Valid @RequestBody RegisterRequest body) {
+    @PostMapping("/create-account")
+    public ResponseEntity<TokenResponse> createAccount(@Valid @RequestBody RegisterRequest body) {
         var tokens = auth.register(body.name(), body.email(), body.password(), body.phone(), body.birthDate());
         return tokenResponse(tokens, HttpStatus.CREATED);
     }
@@ -58,6 +61,13 @@ public class AuthController implements AuthSwagger {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(auth.me(currentUser.id()));
     }
 
+    @Override
+    @PostMapping("/complete-registration")
+    public ResponseEntity<RegistrationCompletionService.Result> complete(
+            @Valid @RequestBody CompleteRegistrationRequest request) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(completion.complete(currentUser.id(), request));
+    }
     private ResponseEntity<TokenResponse> tokenResponse(AuthService.TokenPair tokens, HttpStatus status) {
         return ResponseEntity.status(status).cacheControl(CacheControl.noStore()).body(
                 new TokenResponse(

@@ -25,7 +25,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     @Override protected boolean shouldNotFilter(HttpServletRequest request) {
         return !"POST".equals(request.getMethod()) || !Set.of(
-                        "/delta/auth/register", "/delta/auth/login", "/delta/auth/refresh")
+                        "/delta/auth/create-account", "/delta/auth/login", "/delta/auth/refresh")
                 .contains(request.getRequestURI().substring(request.getContextPath().length()));
     }
 

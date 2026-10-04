@@ -40,8 +40,8 @@ class AuthIntegrationTests extends AuthTestConfig {
         users.saveAndFlush(user);
     }
 
-    @Test void registerUsesUserTableAndStartsSession() throws Exception {
-        var response = mvc.perform(post("/delta/auth/register").contentType("application/json").content("""
+    @Test void createAccountUsesUserTableAndStartsSession() throws Exception {
+        var response = mvc.perform(post("/delta/auth/create-account").contentType("application/json").content("""
                 {"name":"Davi","email":"DAVI@gmail.com","password":"senha1234",
                  "phone":null,"birthDate":"2000-01-01"}
                 """))
@@ -68,10 +68,10 @@ class AuthIntegrationTests extends AuthTestConfig {
     }
 
     @Test void invalidRegistrationAndDuplicateEmailAreRejected() throws Exception {
-        mvc.perform(post("/delta/auth/register").contentType("application/json")
+        mvc.perform(post("/delta/auth/create-account").contentType("application/json")
                         .content("{\"name\":\"Davi\",\"email\":\"user@example.com\",\"password\":\"senha1234\",\"birthDate\":\"2000-01-01\"}"))
                 .andExpect(status().isConflict());
-        mvc.perform(post("/delta/auth/register").contentType("application/json")
+        mvc.perform(post("/delta/auth/create-account").contentType("application/json")
                         .content("{\"name\":\"\",\"email\":\"invalid\",\"password\":\"short\"}"))
                 .andExpect(status().isBadRequest());
     }
@@ -84,5 +84,24 @@ class AuthIntegrationTests extends AuthTestConfig {
         mvc.perform(post("/delta/auth/login").contentType("application/json")
                         .content("{\"email\":\"user@example.com\",\"password\":\"test-password-123\"}"))
                 .andExpect(status().isUnauthorized());
+    }
+    @Test void createAccountIssuesUsableTokens() throws Exception {
+        var response = mvc.perform(post("/delta/auth/create-account").contentType("application/json").content("""
+                {"name":"Mobile","email":"mobile@example.com","password":"senha1234","birthDate":"2000-01-01"}
+                """))
+                .andExpect(status().isCreated()).andExpect(jsonPath("refreshToken").isNotEmpty())
+                .andReturn().getResponse();
+        var token = json.readTree(response.getContentAsString()).path("accessToken").asText();
+        mvc.perform(get("/delta/auth/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("email").value("mobile@example.com"));
+    }
+
+    @Test void completionRequiresAuthenticationAndValidNestedFields() throws Exception {
+        mvc.perform(post("/delta/auth/complete-registration").contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/delta/auth/complete-registration")
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt())
+                .contentType("application/json").content("{}"))
+                .andExpect(status().isBadRequest());
     }
 }
