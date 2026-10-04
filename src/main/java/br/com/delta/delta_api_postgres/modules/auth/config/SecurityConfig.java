@@ -104,7 +104,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(errors).accessDeniedHandler(errors))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST,
-                                "/delta/auth/register", "/delta/auth/login", "/delta/auth/refresh").permitAll()
+                                "/delta/auth/create-account", "/delta/auth/login", "/delta/auth/refresh").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new AuthRateLimitFilter(properties, errors, clock), CsrfFilter.class);

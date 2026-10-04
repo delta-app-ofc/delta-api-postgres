@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.auth.swagger;
 
+import br.com.delta.delta_api_postgres.modules.auth.dto.CompleteRegistrationRequest;
+import br.com.delta.delta_api_postgres.modules.auth.service.RegistrationCompletionService;
 import br.com.delta.delta_api_postgres.modules.auth.service.AuthService;
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.LoginRequest;
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.AccessTokenResponse;
@@ -25,7 +27,7 @@ public interface AuthSwagger {
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "409", description = "E-mail já cadastrado")
     })
-    ResponseEntity<TokenResponse> register(RegisterRequest body);
+    ResponseEntity<TokenResponse> createAccount(RegisterRequest body);
 
     @Operation(summary = "Autenticar usuário", security = {})
     @ApiResponses({
@@ -52,4 +54,8 @@ public interface AuthSwagger {
             @ApiResponse(responseCode = "401", description = "Autenticação necessária ou token inválido")
     })
     ResponseEntity<AuthService.UserInfo> me();
+    @Operation(summary = "Conclui o cadastro com endereço, imóvel e hábitos",
+            description = "Usa o usuário do token. Reenvios com os mesmos dados retornam o cadastro existente.")
+    @SecurityRequirement(name = "bearerAuth")
+    ResponseEntity<RegistrationCompletionService.Result> complete(CompleteRegistrationRequest request);
 }
