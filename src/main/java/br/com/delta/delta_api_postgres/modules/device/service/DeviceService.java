@@ -91,9 +91,9 @@ public class DeviceService {
                         )
                 );
 
-        if (deviceRepository.existsByDeviceIdAndIdNot(io.deviceId(), id)) {
+        if (!device.getDeviceId().equals(io.deviceId())) {
             throw new ResourceAlreadyExistsException(
-                    "Já existe um dispositivo com esse device_id."
+                    "O deviceId é a identidade do dispositivo e não pode ser alterado."
             );
         }
 

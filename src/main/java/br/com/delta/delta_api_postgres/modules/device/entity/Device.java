@@ -20,7 +20,8 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "device_id", nullable = false, unique = true)
+    // Canonical identity shared with telemetry; the integer id is SQL-local.
+    @Column(name = "device_id", nullable = false, unique = true, updatable = false)
     private String deviceId;
 
     @ManyToOne(fetch = FetchType.LAZY)

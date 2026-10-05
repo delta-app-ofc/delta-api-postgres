@@ -161,7 +161,6 @@ class DeviceServiceTest {
         DeviceIO expected = savedDeviceIO();
 
         when(deviceRepository.findById(DEVICE_ID)).thenReturn(Optional.of(device));
-        when(deviceRepository.existsByDeviceIdAndIdNot(DEVICE_CODE, DEVICE_ID)).thenReturn(false);
         when(propertyRepository.findById(PROPERTY_ID)).thenReturn(Optional.of(property));
         when(deviceRepository.save(device)).thenReturn(device);
         when(deviceMapper.toIO(device)).thenReturn(expected);
@@ -187,16 +186,14 @@ class DeviceServiceTest {
     }
 
     @Test
-    void update_quandoDeviceIdPertenceAOutroDispositivo_deveLancarResourceAlreadyExistsException() {
-        DeviceIO input = inputDeviceIO();
+    void update_quandoIdentidadeMuda_deveRecusarAntesDeAtualizar() {
+        DeviceIO input = new DeviceIO(DEVICE_ID, "DEVICE-NEW", PROPERTY_ID, true, null);
         Device device = device(DEVICE_ID, property());
 
         when(deviceRepository.findById(DEVICE_ID)).thenReturn(Optional.of(device));
-        when(deviceRepository.existsByDeviceIdAndIdNot(DEVICE_CODE, DEVICE_ID)).thenReturn(true);
-
         assertThatThrownBy(() -> deviceService.update(DEVICE_ID, input))
                 .isInstanceOf(ResourceAlreadyExistsException.class)
-                .hasMessage("Já existe um dispositivo com esse device_id.");
+                .hasMessage("O deviceId é a identidade do dispositivo e não pode ser alterado.");
 
         verify(deviceRepository, never()).save(any());
         verifyNoInteractions(propertyRepository, deviceMapper);
@@ -208,7 +205,6 @@ class DeviceServiceTest {
         Device device = device(DEVICE_ID, property());
 
         when(deviceRepository.findById(DEVICE_ID)).thenReturn(Optional.of(device));
-        when(deviceRepository.existsByDeviceIdAndIdNot(DEVICE_CODE, DEVICE_ID)).thenReturn(false);
         when(propertyRepository.findById(PROPERTY_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> deviceService.update(DEVICE_ID, input))
