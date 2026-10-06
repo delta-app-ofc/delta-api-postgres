@@ -6,9 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import javax.sql.DataSource;
 import java.time.Instant;
 import static org.assertj.core.api.Assertions.*;
@@ -25,12 +23,8 @@ class DeviceCredentialRepositoryTest {
     @Autowired jakarta.persistence.EntityManager entityManager;
     private static final Instant CREATED = Instant.parse("2026-10-05T15:00:00Z");
 
-    @BeforeEach void applyMigrationAndSeedExistingDevice() {
+    @BeforeEach void seedExistingDevice() {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-        // Exercise JPA against the versioned SQL, rather than only Hibernate's generated table.
-        jdbc.execute("DROP TABLE tb_device_credential");
-        new ResourceDatabasePopulator(new ClassPathResource("db/migration/V001__create_device_credentials.sql"))
-                .execute(dataSource);
         jdbc.update("INSERT INTO tb_region (id, name) VALUES (1000, 'GRANDE_SP')");
         jdbc.update("INSERT INTO tb_address (id, region_id, cep, city, state) VALUES (1000, 1000, '01001000', 'São Paulo', 'SP')");
         jdbc.update("INSERT INTO tb_property_classification (id, name, group_name) VALUES (1000, 'RESIDENCIAL_NORMAL', 'RESIDENCIAL')");
