@@ -14,7 +14,7 @@ import java.time.Instant;
         uniqueConstraints = {
                 @UniqueConstraint(name = "uq_device_credential_hash", columnNames = "key_hash"),
                 @UniqueConstraint(name = "uq_device_credential_current", columnNames = "current_device_id")
-        }, indexes = @Index(name = "ix_device_credential_device", columnList = "device_id"))
+        }, indexes = @Index(name = "idx_device_credential_device", columnList = "device_id"))
 @Check(constraints = "((revoked_at is null and current_device_id is not null and current_device_id = device_id) "
         + "or (revoked_at is not null and current_device_id is null)) "
         + "and char_length(key_hash) = 64 "
