@@ -6,6 +6,7 @@ import br.com.delta.delta_api_postgres.modules.auth.security.CurrentUser;
 import br.com.delta.delta_api_postgres.modules.device.config.DeviceCredentialProperties;
 import br.com.delta.delta_api_postgres.modules.device.dto.io.IssuedDeviceCredentialIO;
 import br.com.delta.delta_api_postgres.modules.device.entity.DeviceCredential;
+import br.com.delta.delta_api_postgres.modules.device.entity.Device;
 import br.com.delta.delta_api_postgres.modules.device.repository.DeviceCredentialRepository;
 import br.com.delta.delta_api_postgres.modules.device.repository.DeviceRepository;
 import br.com.delta.delta_api_postgres.modules.device.security.DeviceApiKeys;
@@ -44,10 +45,46 @@ public class DeviceCredentialService {
             credentials.flush();
         });
 
+        return createCredential(device, actor, now, null);
+    }
+
+    @Transactional
+    public IssuedDeviceCredentialIO rotate(Integer deviceId) {
+        Integer actor = currentUser.id();
+        var device = devices.findLockedById(deviceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo não encontrado"));
+        if (!device.isActive()) throw new ResourceAlreadyExistsException("Dispositivo inativo.");
+        Instant now = clock.instant().truncatedTo(ChronoUnit.MICROS);
+        var previous = credentials.findByCurrentDeviceId(deviceId)
+                .filter(credential -> credential.isValidAt(now))
+                .orElseThrow(() -> new ResourceAlreadyExistsException("Não há credencial válida para trocar. Emita uma credencial primeiro."));
+        previous.revoke(now);
+        credentials.flush();
+        return createCredential(device, actor, now, previous.getId());
+    }
+
+    @Transactional
+    public void revoke(Integer deviceId) {
+        Integer actor = currentUser.id();
+        var device = devices.findLockedById(deviceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo não encontrado"));
+        credentials.findByCurrentDeviceId(deviceId).ifPresent(credential -> {
+            Instant now = clock.instant().truncatedTo(ChronoUnit.MICROS);
+            credential.revoke(now);
+            credentials.flush();
+            events.publishEvent(new DeviceCredentialAudit.Revoked(deviceId, device.getDeviceId(), credential.getId(), actor, now));
+        });
+    }
+
+    private IssuedDeviceCredentialIO createCredential(Device device, Integer actor, Instant now, Integer previousId) {
         String key = keys.generate();
         Instant expiresAt = properties.getTtl().isZero() ? null : now.plus(properties.getTtl());
         var credential = credentials.saveAndFlush(new DeviceCredential(device, keys.hash(key), now, expiresAt));
-        events.publishEvent(new DeviceCredentialAudit.Issued(deviceId, device.getDeviceId(), credential.getId(), actor, now));
+        if (previousId == null) {
+            events.publishEvent(new DeviceCredentialAudit.Issued(device.getId(), device.getDeviceId(), credential.getId(), actor, now));
+        } else {
+            events.publishEvent(new DeviceCredentialAudit.Rotated(device.getId(), device.getDeviceId(), previousId, credential.getId(), actor, now));
+        }
         return new IssuedDeviceCredentialIO(credential.getId(), device.getDeviceId(), key, now, expiresAt);
     }
 }

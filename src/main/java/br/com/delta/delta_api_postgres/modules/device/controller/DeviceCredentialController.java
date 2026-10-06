@@ -18,4 +18,15 @@ public class DeviceCredentialController {
     public ResponseEntity<IssuedDeviceCredentialIO> issue(@PathVariable Integer id) {
         return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noStore()).body(service.issue(id));
     }
+
+    @PostMapping("/rotate")
+    public ResponseEntity<IssuedDeviceCredentialIO> rotate(@PathVariable Integer id) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(service.rotate(id));
+    }
+
+    @DeleteMapping("/current")
+    public ResponseEntity<Void> revoke(@PathVariable Integer id) {
+        service.revoke(id);
+        return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
+    }
 }
