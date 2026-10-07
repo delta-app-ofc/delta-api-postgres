@@ -74,7 +74,6 @@ public class DeviceMapper {
             Property property
     ) {
 
-        device.setDeviceId(io.deviceId());
         device.setProperty(property);
         device.setActive(io.isActive());
 

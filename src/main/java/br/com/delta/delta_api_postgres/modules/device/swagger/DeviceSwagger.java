@@ -37,12 +37,12 @@ public interface DeviceSwagger {
     })
     ResponseEntity<DeviceIO> findById(Integer id);
 
-    @Operation(summary = "Atualizar dispositivo")
+    @Operation(summary = "Atualizar dispositivo", description = "Atualiza propriedade e status. O deviceId deve permanecer igual ao cadastrado.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Dispositivo atualizado"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "404", description = "Dispositivo ou propriedade não encontrado"),
-            @ApiResponse(responseCode = "409", description = "Dispositivo já cadastrado")
+            @ApiResponse(responseCode = "409", description = "Alteração da identidade deviceId não permitida")
     })
     ResponseEntity<DeviceIO> update(
             Integer id,
