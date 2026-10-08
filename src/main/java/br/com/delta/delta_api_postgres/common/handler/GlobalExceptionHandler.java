@@ -17,6 +17,27 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(Exception exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciais inválidas ou sessão expirada.", request);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(Exception exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.FORBIDDEN, "Acesso não permitido.", request);
+    }
+
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(
+            org.springframework.web.server.ResponseStatusException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.valueOf(exception.getStatusCode().value()), exception.getReason(), request);
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleUnreadable(Exception exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Corpo da requisição inválido.", request);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(
             ResourceNotFoundException exception,
@@ -94,6 +115,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(status)
+                .cacheControl(org.springframework.http.CacheControl.noStore())
                 .body(response);
     }
 
