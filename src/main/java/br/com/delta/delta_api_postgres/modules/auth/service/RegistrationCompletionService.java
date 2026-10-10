@@ -57,7 +57,8 @@ public class RegistrationCompletionService {
             throw new ResourceAlreadyExistsException("Usuário já possui hábitos cadastrados. Utilize as rotas de atualização.");
 
         var a = request.address();
-        var address = addresses.create(new AddressIO(null, a.regionId(), a.cep(), a.city(), a.state()));
+        var address = addresses.create(new AddressIO(null, a.regionId(), a.cep(), a.city(), a.state(),
+                a.latitude(), a.longitude()));
         var p = request.property();
         var property = properties.create(userId, new PropertyIO(null, p.name(), p.type(),
                 p.classification(), address.id(), p.organizationId(), p.builtAreaM2(), null));
