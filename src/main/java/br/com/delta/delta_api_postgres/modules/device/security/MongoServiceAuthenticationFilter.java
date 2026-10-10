@@ -22,7 +22,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public class MongoServiceAuthenticationFilter extends OncePerRequestFilter {
-    public static final String VALIDATE_AUTHORITY = "DEVICE_AUTH_VALIDATE";
+    public static final String VALIDATE_AUTHORITY = "DEVICE_VALIDATE";
     private final DeviceIntegrationProperties properties;
     private final SecurityErrorHandler errors;
 

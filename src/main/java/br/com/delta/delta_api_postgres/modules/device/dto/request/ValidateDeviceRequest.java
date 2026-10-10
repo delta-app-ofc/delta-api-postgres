@@ -6,21 +6,20 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.io.IOException;
 
-public record ValidateDeviceCredentialRequest(
-        @JsonProperty("api_key") @NotNull @Size(max = 256)
-        @JsonDeserialize(using = StrictString.class) String apiKey
+public record ValidateDeviceRequest(
+        @JsonProperty("device_id") @NotBlank @Size(max = 100)
+        @JsonDeserialize(using = StrictString.class) String deviceId
 ) {
-    @Override public String toString() { return "ValidateDeviceCredentialRequest[redacted]"; }
 
     public static class StrictString extends StdDeserializer<String> {
         public StrictString() { super(String.class); }
         @Override public String deserialize(JsonParser parser, DeserializationContext context) throws IOException {
             if (!parser.hasToken(JsonToken.VALUE_STRING)) {
-                context.reportInputMismatch(String.class, "api_key deve ser uma string.");
+                context.reportInputMismatch(String.class, "device_id deve ser uma string.");
             }
             return parser.getText();
         }
