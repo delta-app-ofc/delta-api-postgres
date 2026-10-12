@@ -19,7 +19,7 @@ public class DeviceIntegrationSecurityConfig {
     @Order(1)
     SecurityFilterChain deviceIntegrationFilterChain(HttpSecurity http, DeviceIntegrationProperties properties,
                                                     SecurityErrorHandler errors) throws Exception {
-        return http.securityMatcher("/delta/internal/device-auth/**")
+        return http.securityMatcher("/delta/internal/devices/**")
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable())
                 .formLogin(form -> form.disable()).httpBasic(basic -> basic.disable()).logout(logout -> logout.disable())
@@ -27,7 +27,7 @@ public class DeviceIntegrationSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(errors).accessDeniedHandler(errors))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/delta/internal/device-auth/validate")
+                        .requestMatchers(HttpMethod.POST, "/delta/internal/devices/validate")
                         .hasAuthority(MongoServiceAuthenticationFilter.VALIDATE_AUTHORITY)
                         .anyRequest().denyAll())
                 .addFilterBefore(new MongoServiceAuthenticationFilter(properties, errors), AnonymousAuthenticationFilter.class)
