@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+.local
+.env
+.env.*
+private.pem
+public.pem
+target
+*.log
