@@ -45,6 +45,9 @@ public class UserHabitService {
         userHabit.setUserId(io.userId());
         userHabit.setHabit(habit);
         userHabit.setFrequency(io.frequency());
+        userHabit.setStartTime(io.startTime());
+        userHabit.setEndTime(io.endTime());
+        userHabit.setEstimatedLiters(io.estimatedLiters());
 
         addDays(userHabit, io.daysOfWeek());
 
@@ -116,6 +119,9 @@ public class UserHabitService {
 
         userHabit.setHabit(habit);
         userHabit.setFrequency(io.frequency());
+        userHabit.setStartTime(io.startTime());
+        userHabit.setEndTime(io.endTime());
+        userHabit.setEstimatedLiters(io.estimatedLiters());
 
         syncDays(userHabit, io.daysOfWeek());
 
