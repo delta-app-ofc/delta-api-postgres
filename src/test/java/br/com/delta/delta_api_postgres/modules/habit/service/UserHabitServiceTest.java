@@ -132,7 +132,7 @@ class UserHabitServiceTest {
         UserHabit second = userHabit(2, USER_ID, habit(NEW_HABIT_ID), 5, List.of(2));
         UserHabitIO firstIO = savedUserHabitIO(HABIT_ID, List.of(1));
         UserHabitIO secondIO = new UserHabitIO(2, USER_ID, NEW_HABIT_ID,
-                "Novo hábito", "Descrição", 5, List.of(2));
+                "Novo hábito", null, "Descrição", 5, null, null, null, List.of(2));
 
         when(userHabitRepository.findByUserId(USER_ID)).thenReturn(List.of(first, second));
         when(userHabitMapper.toIO(first)).thenReturn(firstIO);
@@ -209,7 +209,11 @@ class UserHabitServiceTest {
                 NEW_HABIT_ID,
                 null,
                 null,
+                null,
                 5,
+                null,
+                null,
+                null,
                 List.of(2, 3, 3)
         );
         UserHabitIO expected = new UserHabitIO(
@@ -217,8 +221,12 @@ class UserHabitServiceTest {
                 USER_ID,
                 NEW_HABIT_ID,
                 "Novo hábito",
+                null,
                 "Descrição",
                 5,
+                null,
+                null,
+                null,
                 List.of(2, 3)
         );
 
@@ -346,7 +354,7 @@ class UserHabitServiceTest {
     }
 
     private UserHabitIO inputUserHabitIO(Integer habitId, List<Integer> days) {
-        return new UserHabitIO(null, USER_ID, habitId, null, null, FREQUENCY, days);
+        return new UserHabitIO(null, USER_ID, habitId, null, null, null, FREQUENCY, null, null, null, days);
     }
 
     private UserHabitIO savedUserHabitIO(Integer habitId, List<Integer> days) {
@@ -355,14 +363,18 @@ class UserHabitServiceTest {
                 USER_ID,
                 habitId,
                 "Hábito",
+                null,
                 "Descrição",
                 FREQUENCY,
+                null,
+                null,
+                null,
                 days
         );
     }
 
     private Habit habit(Integer id) {
-        return new Habit(id, "Hábito", "Descrição");
+        return new Habit(id, "Hábito", null, "Descrição");
     }
 
     private DayOfWeek day(Integer id, String name) {
@@ -376,7 +388,7 @@ class UserHabitServiceTest {
             Integer frequency,
             List<Integer> dayIds
     ) {
-        UserHabit userHabit = new UserHabit(id, userId, habit, frequency, new ArrayList<>());
+        UserHabit userHabit = new UserHabit(id, userId, habit, frequency, null, null, null, new ArrayList<>());
 
         dayIds.forEach(dayId -> userHabit.getDays().add(
                 new UserHabitDay(null, userHabit, day(dayId, "Dia " + dayId))
