@@ -41,11 +41,11 @@ class RegistrationCompletionServiceTest {
         request = new CompleteRegistrationRequest(new CreateAddressRequest(1, "01001000", "São Paulo", "SP", null, null),
                 new CompleteRegistrationRequest.PropertyDetails("Casa", PropertyType.CASA,
                         PropertyClassification.RESIDENCIAL_NORMAL, null, null),
-                List.of(new CreateUserHabitRequest(2, 3, null, null, null, List.of(1, 3))));
+                List.of(new CreateUserHabitRequest(2, 3, java.time.LocalTime.of(7, 0), java.time.LocalTime.of(7, 20), new java.math.BigDecimal("45.00"), List.of(1, 3))));
         address = new AddressIO(10, 1, "01001000", "São Paulo", "SP", null, null);
         property = new PropertyIO(20, "Casa", PropertyType.CASA,
                 PropertyClassification.RESIDENCIAL_NORMAL, 10, null, null, null);
-        habit = new UserHabitIO(30, 7, 2, "Hábito", null, null, 3, null, null, null, List.of(1, 3));
+        habit = new UserHabitIO(30, 7, 2, "Hábito", null, null, 3, java.time.LocalTime.of(7, 0), java.time.LocalTime.of(7, 20), new java.math.BigDecimal("45.00"), List.of(1, 3));
     }
 
     @Test void completesUsingAuthenticatedUserAndCreatesMissingAssociation() {
@@ -56,7 +56,7 @@ class RegistrationCompletionServiceTest {
         assertThat(result.userId()).isEqualTo(7);
         assertThat(result.completed()).isTrue();
         verify(associations).create(new UserPropertyIO(null, 7, 20, null, null));
-        verify(habits).create(new UserHabitIO(null, 7, 2, null, null, null, 3, null, null, null, List.of(1, 3)));
+        verify(habits).create(new UserHabitIO(null, 7, 2, null, null, null, 3, java.time.LocalTime.of(7, 0), java.time.LocalTime.of(7, 20), new java.math.BigDecimal("45.00"), List.of(1, 3)));
     }
 
     @Test void identicalRetryDoesNotWriteAnything() {

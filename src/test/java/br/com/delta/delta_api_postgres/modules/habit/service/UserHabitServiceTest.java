@@ -18,6 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +44,9 @@ class UserHabitServiceTest {
     private static final Integer HABIT_ID = 100;
     private static final Integer NEW_HABIT_ID = 200;
     private static final Integer FREQUENCY = 3;
+    private static final LocalTime START = LocalTime.of(7, 0);
+    private static final LocalTime END = LocalTime.of(7, 20);
+    private static final BigDecimal LITERS = new BigDecimal("45.00");
 
     @Mock
     private UserHabitRepository userHabitRepository;
@@ -59,7 +66,8 @@ class UserHabitServiceTest {
     @Test
     void create_quandoDadosValidos_deveSalvarERetornarHabitoDoUsuario() {
         // Arrange
-        UserHabitIO input = inputUserHabitIO(HABIT_ID, List.of(1, 2, 1));
+        UserHabitIO input = new UserHabitIO(null, USER_ID, HABIT_ID, null, null, null, FREQUENCY,
+                START, END, LITERS, List.of(1, 2, 1));
         UserHabitIO expected = savedUserHabitIO(HABIT_ID, List.of(1, 2));
         Habit habit = habit(HABIT_ID);
         DayOfWeek monday = day(1, "Segunda-feira");
@@ -88,6 +96,9 @@ class UserHabitServiceTest {
         assertThat(saved.getUserId()).isEqualTo(USER_ID);
         assertThat(saved.getHabit()).isSameAs(habit);
         assertThat(saved.getFrequency()).isEqualTo(FREQUENCY);
+        assertThat(saved.getStartTime()).isEqualTo(START);
+        assertThat(saved.getEndTime()).isEqualTo(END);
+        assertThat(saved.getEstimatedLiters()).isEqualByComparingTo(LITERS);
         assertThat(dayIds(saved)).containsExactly(1, 2);
         assertThat(saved.getDays())
                 .allSatisfy(userHabitDay -> assertThat(userHabitDay.getUserHabit()).isSameAs(saved));
@@ -95,6 +106,42 @@ class UserHabitServiceTest {
         verify(dayOfWeekRepository, times(1)).findById(1);
         verify(dayOfWeekRepository, times(1)).findById(2);
         verify(userHabitMapper).toIO(saved);
+    }
+
+    @Test
+    void create_quandoFimNaoEDepoisDoInicio_deveLancarBadRequest() {
+        UserHabitIO input = new UserHabitIO(null, USER_ID, HABIT_ID, null, null, null, FREQUENCY,
+                END, START, LITERS, List.of(1));
+
+        assertThatThrownBy(() -> userHabitService.create(input))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("400");
+
+        verifyNoInteractions(habitRepository, userHabitRepository);
+    }
+
+    @Test
+    void create_quandoSoUmHorarioInformado_deveLancarBadRequest() {
+        UserHabitIO input = new UserHabitIO(null, USER_ID, HABIT_ID, null, null, null, FREQUENCY,
+                START, null, null, List.of(1));
+
+        assertThatThrownBy(() -> userHabitService.create(input))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("400");
+
+        verifyNoInteractions(habitRepository, userHabitRepository);
+    }
+
+    @Test
+    void update_quandoFimNaoEDepoisDoInicio_deveLancarBadRequest() {
+        UserHabitIO input = new UserHabitIO(USER_HABIT_ID, USER_ID, NEW_HABIT_ID, null, null, null, FREQUENCY,
+                START, START, null, List.of(1));
+
+        assertThatThrownBy(() -> userHabitService.update(USER_ID, USER_HABIT_ID, input))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("400");
+
+        verifyNoInteractions(habitRepository, userHabitRepository);
     }
 
     @Test
@@ -211,9 +258,9 @@ class UserHabitServiceTest {
                 null,
                 null,
                 5,
-                null,
-                null,
-                null,
+                START,
+                END,
+                LITERS,
                 List.of(2, 3, 3)
         );
         UserHabitIO expected = new UserHabitIO(
@@ -241,6 +288,9 @@ class UserHabitServiceTest {
         assertThat(result).isEqualTo(expected);
         assertThat(userHabit.getHabit()).isSameAs(newHabit);
         assertThat(userHabit.getFrequency()).isEqualTo(5);
+        assertThat(userHabit.getStartTime()).isEqualTo(START);
+        assertThat(userHabit.getEndTime()).isEqualTo(END);
+        assertThat(userHabit.getEstimatedLiters()).isEqualByComparingTo(LITERS);
         assertThat(dayIds(userHabit)).containsExactly(2, 3);
         assertThat(userHabit.getDays().get(1).getUserHabit()).isSameAs(userHabit);
         verify(dayOfWeekRepository).findById(3);
