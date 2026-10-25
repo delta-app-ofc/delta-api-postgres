@@ -12,8 +12,10 @@ import br.com.delta.delta_api_postgres.modules.habit.repository.DayOfWeekReposit
 import br.com.delta.delta_api_postgres.modules.habit.repository.HabitRepository;
 import br.com.delta.delta_api_postgres.modules.habit.repository.UserHabitRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -33,6 +35,8 @@ public class UserHabitService {
 
     public UserHabitIO create(UserHabitIO io) {
 
+        validateTimes(io);
+
         Habit habit = habitRepository.findById(io.habitId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -45,6 +49,9 @@ public class UserHabitService {
         userHabit.setUserId(io.userId());
         userHabit.setHabit(habit);
         userHabit.setFrequency(io.frequency());
+        userHabit.setStartTime(io.startTime());
+        userHabit.setEndTime(io.endTime());
+        userHabit.setEstimatedLiters(io.estimatedLiters());
 
         addDays(userHabit, io.daysOfWeek());
 
@@ -87,6 +94,8 @@ public class UserHabitService {
             UserHabitIO io
     ) {
 
+        validateTimes(io);
+
         UserHabit userHabit = userHabitRepository
                 .findById(id)
                 .orElseThrow(() ->
@@ -116,6 +125,9 @@ public class UserHabitService {
 
         userHabit.setHabit(habit);
         userHabit.setFrequency(io.frequency());
+        userHabit.setStartTime(io.startTime());
+        userHabit.setEndTime(io.endTime());
+        userHabit.setEstimatedLiters(io.estimatedLiters());
 
         syncDays(userHabit, io.daysOfWeek());
 
@@ -138,6 +150,21 @@ public class UserHabitService {
         validateOwnership(userHabit, userId);
 
         userHabitRepository.delete(userHabit);
+    }
+
+    // Espelha chk_tb_user_habit_time do banco: devolve 400 em vez de erro 500.
+    private void validateTimes(UserHabitIO io) {
+
+        boolean onlyOne = (io.startTime() == null) != (io.endTime() == null);
+        boolean inverted = io.startTime() != null && io.endTime() != null
+                && !io.endTime().isAfter(io.startTime());
+
+        if (onlyOne || inverted) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Informe horário de início e fim juntos, com o fim depois do início"
+            );
+        }
     }
 
     private void validateOwnership(
