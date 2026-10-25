@@ -39,7 +39,7 @@ class RegistrationRollbackTests extends AuthTestConfig {
         ReflectionTestUtils.setField(region, "name", RegionName.GRANDE_SP);
         region = regions.saveAndFlush(region);
         var request = new CompleteRegistrationRequest(
-                new CreateAddressRequest(region.getId(), "01001000", "São Paulo", "SP"),
+                new CreateAddressRequest(region.getId(), "01001000", "São Paulo", "SP", null, null),
                 new CompleteRegistrationRequest.PropertyDetails("Casa", PropertyType.CASA,
                         PropertyClassification.RESIDENCIAL_NORMAL, null, null), List.of());
         var before = addresses.count();

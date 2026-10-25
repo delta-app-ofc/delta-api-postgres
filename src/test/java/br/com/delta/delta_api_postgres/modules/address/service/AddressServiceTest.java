@@ -85,7 +85,7 @@ class AddressServiceTest {
     void findAll_quandoExistemEnderecos_deveRetornarTodosMapeados() {
         Region region = new Region();
         Address firstAddress = address(ADDRESS_ID, region);
-        Address secondAddress = new Address(2, region, "20040002", "Rio de Janeiro", "Rio de Janeiro");
+        Address secondAddress = new Address(2, region, "20040002", "Rio de Janeiro", "Rio de Janeiro", null, null);
 
         AddressIO firstIO = savedAddressIO();
         AddressIO secondIO = new AddressIO(2, REGION_ID, "20040002", "Rio de Janeiro", "Rio de Janeiro");
@@ -214,6 +214,6 @@ class AddressServiceTest {
     }
 
     private Address address(Integer id, Region region) {
-        return new Address(id, region, CEP, CITY, STATE);
+        return new Address(id, region, CEP, CITY, STATE, null, null);
     }
 }
