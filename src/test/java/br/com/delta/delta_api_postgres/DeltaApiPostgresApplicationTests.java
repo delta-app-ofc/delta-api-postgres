@@ -1,6 +1,7 @@
 package br.com.delta.delta_api_postgres;
 
 import br.com.delta.delta_api_postgres.common.service.HealthService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DeltaApiPostgresApplicationTests extends AuthTestConfig {
 
 	@Autowired MockMvc mvc;
+	@Autowired ObjectMapper json;
 	@Autowired @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping mappings;
 	@MockitoBean HealthService healthService;
 
@@ -46,6 +48,20 @@ class DeltaApiPostgresApplicationTests extends AuthTestConfig {
 		mvc.perform(get("/health"))
 				.andExpect(status().isServiceUnavailable())
 				.andExpect(jsonPath("$.status").value("DOWN"));
+	}
+
+	@Test
+	void openApiDocumentsPublicHealthResponses() throws Exception {
+		String body = mvc.perform(get("/v3/api-docs"))
+				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+		var operation = json.readTree(body).path("paths").path("/health").path("get");
+
+		assertThat(operation.path("summary").asText()).isEqualTo("Consultar saúde da API");
+		assertThat(operation.path("responses").has("200")).isTrue();
+		assertThat(operation.path("responses").has("503")).isTrue();
+		assertThat(operation.path("responses").path("503").path("content").has("application/json")).isTrue();
+		assertThat(operation.path("security").isArray()).isTrue();
+		assertThat(operation.path("security").size()).isZero();
 	}
 
 	@ParameterizedTest
