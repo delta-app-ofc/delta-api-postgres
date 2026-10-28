@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres;
 
+import br.com.delta.delta_api_postgres.common.service.HealthService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -9,9 +10,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,9 +26,26 @@ class DeltaApiPostgresApplicationTests extends AuthTestConfig {
 
 	@Autowired MockMvc mvc;
 	@Autowired @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping mappings;
+	@MockitoBean HealthService healthService;
 
 	@Test
 	void contextLoads() {
+	}
+
+	@Test
+	void healthIsAvailableWithoutAuthentication() throws Exception {
+		when(healthService.isHealthy()).thenReturn(true);
+		mvc.perform(get("/health"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("UP"));
+	}
+
+	@Test
+	void healthReturnsServiceUnavailableWhenDependencyIsDown() throws Exception {
+		when(healthService.isHealthy()).thenReturn(false);
+		mvc.perform(get("/health"))
+				.andExpect(status().isServiceUnavailable())
+				.andExpect(jsonPath("$.status").value("DOWN"));
 	}
 
 	@ParameterizedTest
