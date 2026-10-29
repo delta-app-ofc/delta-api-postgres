@@ -103,6 +103,7 @@ public class SecurityConfig {
                 .oauth2ResourceServer(resource -> resource.jwt(jwt -> {})
                         .authenticationEntryPoint(errors).accessDeniedHandler(errors))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/health").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/delta/auth/create-account", "/delta/auth/login", "/delta/auth/refresh").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
