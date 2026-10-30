@@ -5,13 +5,16 @@ import br.com.delta.delta_api_postgres.modules.address.dto.io.AddressIO;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.mapper.AddressMapper;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
+import br.com.delta.delta_api_postgres.modules.region.entity.CityRegion;
 import br.com.delta.delta_api_postgres.modules.region.entity.Region;
-import br.com.delta.delta_api_postgres.modules.region.repository.RegionRepository;
+import br.com.delta.delta_api_postgres.modules.region.repository.CityRegionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,13 +34,13 @@ class AddressServiceTest {
     private static final Integer REGION_ID = 10;
     private static final String CEP = "01310100";
     private static final String CITY = "São Paulo";
-    private static final String STATE = "São Paulo";
+    private static final String STATE = "SP";
 
     @Mock
     private AddressRepository addressRepository;
 
     @Mock
-    private RegionRepository regionRepository;
+    private CityRegionRepository cityRegionRepository;
 
     @Mock
     private AddressMapper addressMapper;
@@ -54,7 +57,7 @@ class AddressServiceTest {
         Address savedAddress = address(ADDRESS_ID, region);
         AddressIO expected = savedAddressIO();
 
-        when(regionRepository.findById(REGION_ID)).thenReturn(Optional.of(region));
+        when(cityRegionRepository.findByCityIgnoreCaseAndState(CITY, STATE)).thenReturn(Optional.of(cityRegion(region)));
         when(addressMapper.toEntity(input, region)).thenReturn(address);
         when(addressRepository.save(address)).thenReturn(savedAddress);
         when(addressMapper.toIo(savedAddress)).thenReturn(expected);
@@ -69,13 +72,14 @@ class AddressServiceTest {
     }
 
     @Test
-    void create_quandoRegiaoNaoExiste_deveLancarResourceNotFoundException() {
+    void create_quandoCidadeNaoTemRegiao_deveLancarBadRequest() {
         AddressIO input = inputAddressIO();
-        when(regionRepository.findById(REGION_ID)).thenReturn(Optional.empty());
+        when(cityRegionRepository.findByCityIgnoreCaseAndState(CITY, STATE)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.create(input))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Região nao encontrada");
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST))
+                .hasMessageContaining("apenas cidades de São Paulo");
 
         verify(addressRepository, never()).save(any());
         verifyNoInteractions(addressMapper);
@@ -85,10 +89,10 @@ class AddressServiceTest {
     void findAll_quandoExistemEnderecos_deveRetornarTodosMapeados() {
         Region region = new Region();
         Address firstAddress = address(ADDRESS_ID, region);
-        Address secondAddress = new Address(2, region, "20040002", "Rio de Janeiro", "Rio de Janeiro", null, null);
+        Address secondAddress = new Address(2, region, "20040002", "Rio de Janeiro", "RJ", null, null);
 
         AddressIO firstIO = savedAddressIO();
-        AddressIO secondIO = new AddressIO(2, REGION_ID, "20040002", "Rio de Janeiro", "Rio de Janeiro", null, null);
+        AddressIO secondIO = new AddressIO(2, REGION_ID, "20040002", "Rio de Janeiro", "RJ", null, null);
 
         when(addressRepository.findAll()).thenReturn(List.of(firstAddress, secondAddress));
         when(addressMapper.toIo(firstAddress)).thenReturn(firstIO);
@@ -144,7 +148,7 @@ class AddressServiceTest {
         AddressIO expected = savedAddressIO();
 
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
-        when(regionRepository.findById(REGION_ID)).thenReturn(Optional.of(region));
+        when(cityRegionRepository.findByCityIgnoreCaseAndState(CITY, STATE)).thenReturn(Optional.of(cityRegion(region)));
         when(addressRepository.save(address)).thenReturn(address);
         when(addressMapper.toIo(address)).thenReturn(expected);
 
@@ -165,20 +169,21 @@ class AddressServiceTest {
                 .hasMessage("Endereço nao encontrado");
 
         verify(addressRepository, never()).save(any());
-        verifyNoInteractions(regionRepository, addressMapper);
+        verifyNoInteractions(cityRegionRepository, addressMapper);
     }
 
     @Test
-    void update_quandoRegiaoNaoExiste_deveLancarResourceNotFoundException() {
+    void update_quandoCidadeNaoTemRegiao_deveLancarBadRequest() {
         AddressIO input = inputAddressIO();
         Address address = address(ADDRESS_ID, new Region());
 
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
-        when(regionRepository.findById(REGION_ID)).thenReturn(Optional.empty());
+        when(cityRegionRepository.findByCityIgnoreCaseAndState(CITY, STATE)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.update(ADDRESS_ID, input))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Região nao encontrada");
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST))
+                .hasMessageContaining("apenas cidades de São Paulo");
 
         verify(addressRepository, never()).save(any());
         verifyNoInteractions(addressMapper);
@@ -203,6 +208,10 @@ class AddressServiceTest {
                 .hasMessage("Endereço nao encontrado");
 
         verify(addressRepository, never()).delete(any());
+    }
+
+    private CityRegion cityRegion(Region region) {
+        return new CityRegion(CITY, STATE, region);
     }
 
     private AddressIO inputAddressIO() {

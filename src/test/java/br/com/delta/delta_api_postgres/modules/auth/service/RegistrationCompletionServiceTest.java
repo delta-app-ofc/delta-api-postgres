@@ -38,7 +38,7 @@ class RegistrationCompletionServiceTest {
     @BeforeEach void setup() {
         var user = new AuthUser(); user.setEnabled(true);
         when(users.lockById(7)).thenReturn(Optional.of(user));
-        request = new CompleteRegistrationRequest(new CreateAddressRequest(1, "01001000", "São Paulo", "SP", null, null),
+        request = new CompleteRegistrationRequest(new CreateAddressRequest("01001000", "São Paulo", "SP", null, null),
                 new CompleteRegistrationRequest.PropertyDetails("Casa", PropertyType.CASA,
                         PropertyClassification.RESIDENCIAL_NORMAL, null, null),
                 List.of(new CreateUserHabitRequest(2, 3, java.time.LocalTime.of(7, 0), java.time.LocalTime.of(7, 20), new java.math.BigDecimal("45.00"), List.of(1, 3))));
