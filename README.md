@@ -18,7 +18,7 @@ Spring Boot REST API responsável por gerenciar dados relacionais na plataforma 
 
 ```json
 {
-  "address": { "regionId": 1, "cep": "01001000", "city": "São Paulo", "state": "SP" },
+  "address": { "cep": "01001000", "city": "São Paulo", "state": "SP" },
   "property": {
     "name": "Casa principal",
     "type": "CASA",
