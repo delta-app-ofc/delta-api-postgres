@@ -9,6 +9,7 @@ import br.com.delta.delta_api_postgres.modules.user_property.entity.UserProperty
 import br.com.delta.delta_api_postgres.modules.user_property.mapper.UserPropertyMapper;
 import br.com.delta.delta_api_postgres.modules.user_property.repository.UserPropertyRepository;
 import lombok.RequiredArgsConstructor;
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +19,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class UserPropertyService {
+    private final UserDataAccess access;
 
     private final UserPropertyRepository userPropertyRepository;
     private final PropertyRepository propertyRepository;
     private final UserPropertyMapper userPropertyMapper;
 
     public UserPropertyIO create(UserPropertyIO io) {
+        access.requireUser(io.userId());
+        access.mutableProperty(io.propertyId());
 
         if (userPropertyRepository.existsByUserIdAndProperty_Id(
                 io.userId(),
@@ -48,6 +52,7 @@ public class UserPropertyService {
 
     @Transactional(readOnly = true)
     public List<UserPropertyIO> findAll(Integer userId) {
+        access.requireUser(userId);
 
         return userPropertyRepository.findByUserId(userId)
                 .stream()
@@ -60,6 +65,7 @@ public class UserPropertyService {
             Integer userId,
             Integer id
     ) {
+        access.requireUser(userId);
 
         UserProperty userProperty = userPropertyRepository.findById(id)
                 .orElseThrow(() ->
@@ -76,6 +82,7 @@ public class UserPropertyService {
             Integer id,
             UserPropertyIO io
     ) {
+        access.requireUser(userId);
 
         UserProperty userProperty = userPropertyRepository.findById(id)
                 .orElseThrow(() ->
@@ -83,6 +90,9 @@ public class UserPropertyService {
                 );
 
         validateOwnership(userProperty, userId);
+
+        access.mutableProperty(userProperty.getProperty().getId());
+        access.mutableProperty(io.propertyId());
 
         if (!userProperty.getProperty().getId().equals(io.propertyId())
                 && userPropertyRepository.existsByUserIdAndProperty_Id(
@@ -108,6 +118,7 @@ public class UserPropertyService {
             Integer userId,
             Integer id
     ) {
+        access.requireUser(userId);
 
         UserProperty userProperty = userPropertyRepository.findById(id)
                 .orElseThrow(() ->

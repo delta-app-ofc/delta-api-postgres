@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.analytics.service;
 
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.AuditHistoryChainIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.CapexComparisonIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.ConsumptionDailyIO;
@@ -18,10 +20,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AnalyticsService {
+    private final UserDataAccess access;
 
     private final AnalyticsRepository analyticsRepository;
 
     public List<ConsumptionDailyIO> findConsumptionDailyByPropertyId(Integer propertyId) {
+        access.property(propertyId);
         return analyticsRepository.findConsumptionDailyByPropertyId(propertyId).stream()
                 .map(p -> new ConsumptionDailyIO(
                         p.getPropertyId(),
@@ -36,7 +40,7 @@ public class AnalyticsService {
     }
 
     public List<PropertyRankingIO> findPropertyRanking() {
-        return analyticsRepository.findPropertyRanking().stream()
+        return analyticsRepository.findPropertyRanking(access.userId()).stream()
                 .map(p -> new PropertyRankingIO(
                         p.getPropertyId(),
                         p.getPropertyName(),
@@ -52,6 +56,7 @@ public class AnalyticsService {
     }
 
     public List<MonthlyVariationIO> findMonthlyVariationByPropertyId(Integer propertyId) {
+        access.property(propertyId);
         return analyticsRepository.findMonthlyVariationByPropertyId(propertyId).stream()
                 .map(p -> new MonthlyVariationIO(
                         p.getPropertyId(),
@@ -65,6 +70,7 @@ public class AnalyticsService {
     }
 
     public List<ConsumptionDistributionIO> findConsumptionDistribution() {
+        access.denyUnscopedAnalytics();
         return analyticsRepository.findConsumptionDistribution().stream()
                 .map(p -> new ConsumptionDistributionIO(
                         p.getPropertyKey(),
@@ -94,6 +100,7 @@ public class AnalyticsService {
     }
 
     public List<ResidentialEfficiencyRankingIO> findResidentialEfficiencyRankingByUserId(Integer userId) {
+        access.requireUser(userId);
         return analyticsRepository.findResidentialEfficiencyRankingByUserId(userId).stream()
                 .map(p -> new ResidentialEfficiencyRankingIO(
                         p.getUserId(),
@@ -108,6 +115,7 @@ public class AnalyticsService {
     }
 
     public List<AuditHistoryChainIO> findAuditHistory(Integer regionRateId) {
+        access.denyUnscopedAnalytics();
         return analyticsRepository.findAuditHistory(regionRateId).stream()
                 .map(p -> new AuditHistoryChainIO(
                         p.getLogId(),

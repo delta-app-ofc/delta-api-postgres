@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.last_water_bill.service;
 
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.last_water_bill.dto.io.LastWaterBillIO;
@@ -27,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LastWaterBillServiceTest {
+    @Mock private UserDataAccess access;
 
     private static final Integer BILL_ID = 1;
     private static final Integer USER_ID = 10;
@@ -80,6 +83,7 @@ class LastWaterBillServiceTest {
 
     @Test
     void findAll_quandoExistemFaturas_deveRetornarTodasMapeadas() {
+        when(access.userId()).thenReturn(1);
         LastWaterBill firstBill = bill(BILL_ID, USER_ID, MONTH);
         LastWaterBill secondBill = bill(2, 20, LocalDate.of(2026, 9, 1));
         LastWaterBillIO firstIO = savedBillIO();
@@ -91,7 +95,7 @@ class LastWaterBillServiceTest {
                 new BigDecimal("25.00")
         );
 
-        when(lastWaterBillRepository.findAll()).thenReturn(List.of(firstBill, secondBill));
+        when(lastWaterBillRepository.findByUserId(1)).thenReturn(List.of(firstBill, secondBill));
         when(lastWaterBillMapper.toIO(firstBill)).thenReturn(firstIO);
         when(lastWaterBillMapper.toIO(secondBill)).thenReturn(secondIO);
 
@@ -104,7 +108,8 @@ class LastWaterBillServiceTest {
 
     @Test
     void findAll_quandoNaoExistemFaturas_deveRetornarListaVazia() {
-        when(lastWaterBillRepository.findAll()).thenReturn(List.of());
+        when(access.userId()).thenReturn(1);
+        when(lastWaterBillRepository.findByUserId(1)).thenReturn(List.of());
 
         List<LastWaterBillIO> result = lastWaterBillService.findAll();
 

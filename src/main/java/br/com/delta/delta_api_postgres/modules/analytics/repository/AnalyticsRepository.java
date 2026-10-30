@@ -51,9 +51,10 @@ public interface AnalyticsRepository extends JpaRepository<Property, Integer> {
             consumption_quartile         AS "consumptionQuartile",
             consumption_percent_rank     AS "consumptionPercentRank"
         FROM dw.vw_ft_property_ranking
+        WHERE property_id IN (SELECT property_id FROM tb_user_property WHERE user_id = :userId)
         ORDER BY rank_efficiency
         """, nativeQuery = true)
-    List<PropertyRankingProjection> findPropertyRanking();
+    List<PropertyRankingProjection> findPropertyRanking(@Param("userId") Integer userId);
 
     @Query(value = """
         SELECT

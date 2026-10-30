@@ -19,8 +19,15 @@ import java.util.List;
 
 @Tag(
         name = "Properties",
-        description = "Operações para gerenciamento de propriedades"
+        description = "Imóveis filtrados pelo usuário autenticado. Alterações compartilhadas retornam 409; exclusão exige ausência de dispositivos e remove os próprios vínculos."
 )
+@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")
+@ApiResponses({
+        @ApiResponse(responseCode = "401", description = "Sessão inválida ou conta inativa"),
+        @ApiResponse(responseCode = "403", description = "Identidade divergente ou operação sem permissão"),
+        @ApiResponse(responseCode = "404", description = "Recurso inexistente ou fora do escopo do usuário"),
+        @ApiResponse(responseCode = "409", description = "Duplicidade, compartilhamento ou dependência de exclusão")
+})
 public interface PropertySwagger {
 
     @Operation(

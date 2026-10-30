@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface UserPropertyRepository
         extends JpaRepository<UserProperty, Integer> {
+    void deleteByProperty_Id(Integer propertyId);
 
     List<UserProperty> findByUserId(Integer userId);
 

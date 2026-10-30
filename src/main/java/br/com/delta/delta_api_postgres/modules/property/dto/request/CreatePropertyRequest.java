@@ -41,7 +41,7 @@ public record CreatePropertyRequest(
         PropertyClassification classification,
 
         @Schema(
-                description = "ID do endereço previamente cadastrado",
+                description = "ID de endereço já vinculado ao usuário. Para o primeiro endereço/imóvel use complete-registration.",
                 example = "10"
         )
         @NotNull
