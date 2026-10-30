@@ -1,5 +1,9 @@
 package br.com.delta.delta_api_postgres.modules.property.service;
 
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+import br.com.delta.delta_api_postgres.modules.user_property.repository.UserPropertyRepository;
+import br.com.delta.delta_api_postgres.modules.device.repository.DeviceRepository;
+
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
@@ -35,6 +39,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PropertyServiceTest {
+    @Mock private UserPropertyRepository userPropertyRepository;
+    @Mock private DeviceRepository deviceRepository;
+    @Mock private UserDataAccess access;
 
     private static final Integer PROPERTY_ID = 1;
     private static final Integer ADDRESS_ID = 10;
@@ -81,6 +88,21 @@ class PropertyServiceTest {
 
         assertThat(result).isEqualTo(expected);
         verify(propertyMapper).toIO(savedProperty);
+        verify(userPropertyRepository).saveAndFlush(org.mockito.ArgumentMatchers.argThat(link ->
+                link.getUserId().equals(USER_ID) && link.getProperty() == savedProperty));
+    }
+
+    @Test
+    void create_quandoProcedureJaCriaVinculo_naoDeveDuplicarAssociacao() {
+        Property savedProperty = property(PROPERTY_ID, PROPERTY_NAME, ORGANIZATION_ID, BUILT_AREA_M2);
+        when(propertyRepository.registerProperty(USER_ID, PROPERTY_NAME, PROPERTY_TYPE.name(), CLASSIFICATION.name(),
+                ADDRESS_ID, ORGANIZATION_ID, BUILT_AREA_M2)).thenReturn(PROPERTY_ID);
+        when(propertyRepository.findById(PROPERTY_ID)).thenReturn(Optional.of(savedProperty));
+        when(userPropertyRepository.existsByUserIdAndProperty_Id(USER_ID, PROPERTY_ID)).thenReturn(true);
+
+        propertyService.create(USER_ID, inputPropertyIO());
+
+        verify(userPropertyRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -102,6 +124,7 @@ class PropertyServiceTest {
 
     @Test
     void findAll_quandoExistemPropriedades_deveRetornarTodasMapeadas() {
+        when(access.userId()).thenReturn(1);
         Property firstProperty = property(PROPERTY_ID, PROPERTY_NAME, ORGANIZATION_ID, BUILT_AREA_M2);
         Property secondProperty = property(2, "Loja", null, null);
         PropertyIO firstIO = savedPropertyIO();
@@ -116,7 +139,7 @@ class PropertyServiceTest {
                 REGISTRATION_DATE
         );
 
-        when(propertyRepository.findAll()).thenReturn(List.of(firstProperty, secondProperty));
+        when(propertyRepository.findForUser(1)).thenReturn(List.of(firstProperty, secondProperty));
         when(propertyMapper.toIO(firstProperty)).thenReturn(firstIO);
         when(propertyMapper.toIO(secondProperty)).thenReturn(secondIO);
 
@@ -129,7 +152,8 @@ class PropertyServiceTest {
 
     @Test
     void findAll_quandoNaoExistemPropriedades_deveRetornarListaVazia() {
-        when(propertyRepository.findAll()).thenReturn(List.of());
+        when(access.userId()).thenReturn(1);
+        when(propertyRepository.findForUser(1)).thenReturn(List.of());
 
         List<PropertyIO> result = propertyService.findAll();
 

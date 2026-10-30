@@ -2,6 +2,7 @@ package br.com.delta.delta_api_postgres.modules.auth.service;
 
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.modules.auth.entity.AuthUser;
+import br.com.delta.delta_api_postgres.modules.auth.dto.UpdateProfileRequest;
 import br.com.delta.delta_api_postgres.modules.auth.repository.AuthUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.*;
@@ -23,7 +24,7 @@ public class AuthService {
 
     public record AccessToken(String value) {}
     public record TokenPair(AccessToken accessToken, RefreshTokenService.CreatedRefreshToken refreshToken) {}
-    public record UserInfo(Integer id, String name, String email) {}
+    public record UserInfo(Integer id, String name, String email, String phone, LocalDate birthDate) {}
 
     @Transactional
     public TokenPair register(String name, String email, String password, String phone, LocalDate birthDate) {
@@ -58,7 +59,31 @@ public class AuthService {
     @Transactional(readOnly = true)
     public UserInfo me(Integer userId) {
         AuthUser user = users.findById(userId).filter(AuthUser::isEnabled).orElseThrow(AuthService::invalid);
-        return new UserInfo(user.getId(), user.getName(), user.getEmail());
+        return userInfo(user);
+    }
+
+    @Transactional
+    public UserInfo updateProfile(Integer userId, UpdateProfileRequest request) {
+        AuthUser user = users.lockById(userId).filter(AuthUser::isEnabled).orElseThrow(AuthService::invalid);
+        users.findByEmail(request.email()).filter(existing -> !existing.getId().equals(userId))
+                .ifPresent(existing -> { throw new ResourceAlreadyExistsException("Já existe uma conta com este email."); });
+        user.setName(request.name());
+        user.setEmail(request.email());
+        user.setPhone(request.phone());
+        user.setBirthDate(request.birthDate());
+        return userInfo(users.saveAndFlush(user));
+    }
+
+    /** Logical deletion preserves shared resources and makes all existing tokens unusable. */
+    @Transactional
+    public void deleteProfile(Integer userId) {
+        AuthUser user = users.lockById(userId).filter(AuthUser::isEnabled).orElseThrow(AuthService::invalid);
+        user.setEnabled(false);
+        users.saveAndFlush(user);
+    }
+
+    private UserInfo userInfo(AuthUser user) {
+        return new UserInfo(user.getId(), user.getName(), user.getEmail(), user.getPhone(), user.getBirthDate());
     }
 
     private static BadCredentialsException invalid() {

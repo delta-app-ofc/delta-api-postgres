@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.property.repository;
 
+import java.util.List;
+
 import br.com.delta.delta_api_postgres.modules.property.entity.Property;
 import br.com.delta.delta_api_postgres.modules.property.repository.projection.WaterCostProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +13,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public interface PropertyRepository extends JpaRepository<Property, Integer> {
+    @Query("select distinct p from Property p where exists (select u.id from UserProperty u where u.property = p and u.userId = :userId)")
+    List<Property> findForUser(@Param("userId") Integer userId);
+
     public boolean existsByName(String name);
 
     @Query(value = """

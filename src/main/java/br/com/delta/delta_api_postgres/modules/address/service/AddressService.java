@@ -9,6 +9,7 @@ import br.com.delta.delta_api_postgres.modules.region.entity.Region;
 import br.com.delta.delta_api_postgres.modules.region.repository.RegionRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class AddressService {
+    private final UserDataAccess access;
     private final AddressRepository addressRepository;
     private final RegionRepository regionRepository;
     private final AddressMapper addressMapper;
@@ -33,10 +35,11 @@ public class AddressService {
     }
     @Transactional(readOnly = true)
     public List<AddressIO> findAll(){
-        return addressRepository.findAll().stream().map(addressMapper::toIo).toList();
+        return addressRepository.findForUser(access.userId()).stream().map(addressMapper::toIo).toList();
     }
     @Transactional(readOnly = true)
     public AddressIO findById(Integer id) {
+        access.address(id);
         Address address = addressRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Endereço nao encontrado")
         );
@@ -44,6 +47,7 @@ public class AddressService {
         return addressMapper.toIo(address);
     }
     public AddressIO update(Integer id, AddressIO addressIO) {
+        access.mutableAddress(id);
         Address address = addressRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Endereço nao encontrado")
         );
@@ -57,6 +61,7 @@ public class AddressService {
         return addressMapper.toIo(addressRepository.save(address));
     }
     public void delete(Integer id) {
+        access.deletableAddress(id);
         Address address = addressRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Endereço nao encontrado")
         );

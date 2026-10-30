@@ -30,6 +30,10 @@ class RegistrationRollbackTests extends AuthTestConfig {
     @Autowired RegionRepository regions;
     @MockitoBean PropertyService properties;
 
+    @org.junit.jupiter.api.AfterEach void clearSecurity() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
     @Test void propertyFailureRollsBackAddressButKeepsPreviouslyCreatedAccount() {
         var user = new AuthUser();
         user.setName("Rollback"); user.setEmail("rollback@example.com");
@@ -44,6 +48,10 @@ class RegistrationRollbackTests extends AuthTestConfig {
                         PropertyClassification.RESIDENCIAL_NORMAL, null, null), List.of());
         var before = addresses.count();
         Integer userId = user.getId();
+        var jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("test")
+                .header("alg", "RS256").subject(userId.toString()).build();
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+                new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt));
         when(properties.create(eq(userId), any())).thenAnswer(invocation -> {
             assertThat(addresses.count()).isEqualTo(before + 1);
             throw new IllegalStateException("Simulated property failure");

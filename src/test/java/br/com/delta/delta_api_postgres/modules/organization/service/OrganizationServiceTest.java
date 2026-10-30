@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.organization.service;
 
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.organization.dto.io.OrganizationIO;
@@ -27,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrganizationServiceTest {
+    @Mock private UserDataAccess access;
 
     private static final Integer ORGANIZATION_ID = 1;
     private static final String CORPORATE_NAME = "Empresa Teste LTDA";
@@ -79,6 +82,7 @@ class OrganizationServiceTest {
 
     @Test
     void findAll_quandoExistemOrganizacoes_deveRetornarTodasMapeadas() {
+        when(access.userId()).thenReturn(1);
         Organization firstOrganization = organization(ORGANIZATION_ID);
         Organization secondOrganization = organization(2);
         OrganizationIO firstIO = savedOrganizationIO();
@@ -92,7 +96,7 @@ class OrganizationServiceTest {
                 REGISTRATION_DATE
         );
 
-        when(organizationRepository.findAll()).thenReturn(List.of(firstOrganization, secondOrganization));
+        when(organizationRepository.findForUser(1)).thenReturn(List.of(firstOrganization, secondOrganization));
         when(organizationMapper.toIO(firstOrganization)).thenReturn(firstIO);
         when(organizationMapper.toIO(secondOrganization)).thenReturn(secondIO);
 
@@ -105,7 +109,8 @@ class OrganizationServiceTest {
 
     @Test
     void findAll_quandoNaoExistemOrganizacoes_deveRetornarListaVazia() {
-        when(organizationRepository.findAll()).thenReturn(List.of());
+        when(access.userId()).thenReturn(1);
+        when(organizationRepository.findForUser(1)).thenReturn(List.of());
 
         List<OrganizationIO> result = organizationService.findAll();
 

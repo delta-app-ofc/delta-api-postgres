@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.user_property.service;
 
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.property.entity.Property;
@@ -32,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserPropertyServiceTest {
+    @Mock private UserDataAccess access;
 
     private static final Integer USER_PROPERTY_ID = 1;
     private static final Integer USER_ID = 10;

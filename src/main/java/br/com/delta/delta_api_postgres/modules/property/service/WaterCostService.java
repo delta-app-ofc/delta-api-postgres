@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.property.service;
 
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.property.dto.io.WaterCostIO;
 import br.com.delta.delta_api_postgres.modules.property.repository.PropertyRepository;
@@ -13,9 +15,11 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 public class WaterCostService {
+    private final UserDataAccess access;
     private final PropertyRepository propertyRepository;
 
     public WaterCostIO calculateWaterCost(Integer propertyId, BigDecimal consumptionM3, LocalDate referenceDate) {
+        access.property(propertyId);
         if(!propertyRepository.existsById(propertyId)) {
             throw new ResourceNotFoundException("Propriedade nao " +
                     "encontrada");

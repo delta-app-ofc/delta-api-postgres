@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.property.controller;
 
+import jakarta.validation.Valid;
+
 import br.com.delta.delta_api_postgres.modules.property.dto.io.PropertyIO;
 import br.com.delta.delta_api_postgres.modules.property.dto.io.WaterCostIO;
 import br.com.delta.delta_api_postgres.modules.property.dto.request.CreatePropertyRequest;
@@ -27,8 +29,8 @@ public class PropertyController implements PropertySwagger {
 
     @Override
     @PostMapping
-    public ResponseEntity<PropertyIO> create(@RequestBody CreatePropertyRequest request) {
-        PropertyIO response = propertyService.create(request.userId(),
+    public ResponseEntity<PropertyIO> create(@Valid @RequestBody CreatePropertyRequest request) {
+        PropertyIO response = propertyService.createForExistingAddress(request.userId(),
                 propertyMapper.fromCreateToIO(request));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -60,7 +62,7 @@ public class PropertyController implements PropertySwagger {
 
     @Override
     @PutMapping("/{id}")
-    public ResponseEntity<PropertyIO> update(@PathVariable Integer id, @RequestBody
+    public ResponseEntity<PropertyIO> update(@PathVariable Integer id, @Valid @RequestBody
     UpdatePropertyRequest request) {
 
         PropertyIO response = propertyService.update(id, propertyMapper.fromUpdateRequest(id, request));

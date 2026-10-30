@@ -7,6 +7,7 @@ import br.com.delta.delta_api_postgres.modules.organization.entity.Organization;
 import br.com.delta.delta_api_postgres.modules.organization.mapper.OrganizationMapper;
 import br.com.delta.delta_api_postgres.modules.organization.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +17,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class OrganizationService {
+    private final UserDataAccess access;
     private final OrganizationRepository organizationRepository;
     private final OrganizationMapper organizationMapper;
 
     public OrganizationIO create(OrganizationIO io) {
+        access.denyOrganizationMutation();
         if (organizationRepository.existsByCnpj(io.cnpj())) {
             throw new ResourceAlreadyExistsException(
                     "Já existe uma organização cadastrada com esse CNPJ"
@@ -35,11 +38,12 @@ public class OrganizationService {
 
     @Transactional(readOnly = true)
     public List<OrganizationIO> findAll() {
-        return organizationRepository.findAll().stream().map(organizationMapper::toIO).toList();
+        return organizationRepository.findForUser(access.userId()).stream().map(organizationMapper::toIO).toList();
     }
 
     @Transactional(readOnly = true)
     public OrganizationIO findById(Integer id) {
+        access.organization(id);
         Organization organization = organizationRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Organização não encontrada")
         );
@@ -48,6 +52,7 @@ public class OrganizationService {
     }
 
     public OrganizationIO update(Integer id, OrganizationIO io) {
+        access.denyOrganizationMutation();
         Organization organization = organizationRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Organização não encontrada")
         );
@@ -66,6 +71,7 @@ public class OrganizationService {
     }
 
     public void delete(Integer id) {
+        access.denyOrganizationMutation();
         Organization organization = organizationRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Organização não encontrada")
         );
