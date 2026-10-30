@@ -11,4 +11,7 @@ public record AddressIO(
     BigDecimal latitude,
     BigDecimal longitude
 ) {
+    public AddressIO(Integer id, Integer regionId, String cep, String city, String state) {
+        this(id, regionId, cep, city, state, null, null);
+    }
 }

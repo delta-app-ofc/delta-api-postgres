@@ -5,6 +5,7 @@ public class GenerateLocalKeys {
  public static void main(String[] args) throws Exception {
   Path priv = Path.of(".local/private.pem"), pub = Path.of(".local/public.pem");
   if (Files.exists(priv) || Files.exists(pub)) throw new IllegalStateException("Existing keys will not be overwritten");
+  Files.createDirectories(priv.getParent());
   KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
   generator.initialize(2048);
   KeyPair pair = generator.generateKeyPair();
