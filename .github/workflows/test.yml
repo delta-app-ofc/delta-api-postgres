@@ -1,0 +1,26 @@
+name: CI técnico
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-tecnico-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar configuração do Compose
+        run: docker compose -f docker-compose.test.yml config --quiet
+      - name: Executar testes Maven
+        run: docker compose -f docker-compose.test.yml run --build --rm tests
+      - name: Limpar containers
+        if: always()
+        run: docker compose -f docker-compose.test.yml down
