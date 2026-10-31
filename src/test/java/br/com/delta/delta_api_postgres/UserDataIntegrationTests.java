@@ -91,7 +91,7 @@ class UserDataIntegrationTests extends AuthTestConfig {
         bobDevice = device(bobProperty);
         aliceBill = bill(alice);
         bobBill = bill(bob);
-        var habit = new Habit(null, "Banho", "Banho diário");
+        var habit = new Habit(null, "Banho", "Higiene", "Banho diário");
         em.persist(habit);
         day = new DayOfWeek(null, "Segunda-feira");
         em.persist(day);
