@@ -6,10 +6,12 @@ import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.mapper.AddressMapper;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
 import br.com.delta.delta_api_postgres.modules.region.entity.Region;
-import br.com.delta.delta_api_postgres.modules.region.repository.RegionRepository;
+import br.com.delta.delta_api_postgres.modules.region.repository.MunicipalityRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -18,13 +20,11 @@ import java.util.List;
 @Transactional
 public class AddressService {
     private final AddressRepository addressRepository;
-    private final RegionRepository regionRepository;
+    private final MunicipalityRepository municipalityRepository;
     private final AddressMapper addressMapper;
 
     public AddressIO create(AddressIO addressIO) {
-        Region region = regionRepository.findById(addressIO.regionId()).orElseThrow(
-                () -> new ResourceNotFoundException("Região nao encontrada")
-        );
+        Region region = findRegionByCity(addressIO);
         Address address = addressMapper.toEntity(addressIO, region);
 
         Address savedAddress = addressRepository.save(address);
@@ -48,13 +48,27 @@ public class AddressService {
                 () -> new ResourceNotFoundException("Endereço nao encontrado")
         );
 
-        Region region = regionRepository.findById(addressIO.regionId()).orElseThrow(
-                () -> new ResourceNotFoundException("Região nao encontrada")
-        );
+        Region region = findRegionByCity(addressIO);
 
         addressMapper.updateEntity(address, addressIO, region);
 
         return addressMapper.toIo(addressRepository.save(address));
+    }
+    private Region findRegionByCity(AddressIO addressIO) {
+        if (!"SP".equalsIgnoreCase(addressIO.state().trim())) {
+            throw cityNotServed();
+        }
+        return municipalityRepository
+                .findByNameIgnoreCase(addressIO.city().trim())
+                .orElseThrow(this::cityNotServed)
+                .getRegion();
+    }
+
+    private ResponseStatusException cityNotServed() {
+        return new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "O Delta atende apenas cidades de São Paulo cobertas pela Sabesp."
+        );
     }
     public void delete(Integer id) {
         Address address = addressRepository.findById(id).orElseThrow(
