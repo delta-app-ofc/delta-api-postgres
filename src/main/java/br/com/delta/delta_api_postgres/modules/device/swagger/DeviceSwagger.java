@@ -13,8 +13,15 @@ import java.util.List;
 
 @Tag(
         name = "Devices",
-        description = "Operações para gerenciamento de dispositivos"
+        description = "Dispositivos dos imóveis vinculados ao usuário autenticado. Alterações em imóvel compartilhado retornam 409; deviceId é imutável."
 )
+@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")
+@ApiResponses({
+        @ApiResponse(responseCode = "401", description = "Sessão inválida ou conta inativa"),
+        @ApiResponse(responseCode = "403", description = "Identidade divergente ou operação sem permissão"),
+        @ApiResponse(responseCode = "404", description = "Recurso inexistente ou fora do escopo do usuário"),
+        @ApiResponse(responseCode = "409", description = "Duplicidade, compartilhamento ou dependência de exclusão")
+})
 public interface DeviceSwagger {
 
     @Operation(summary = "Cadastrar dispositivo")

@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.address.service;
 
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.address.dto.io.AddressIO;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
@@ -29,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AddressServiceTest {
+    @Mock private UserDataAccess access;
 
     private static final Integer ADDRESS_ID = 1;
     private static final Integer REGION_ID = 10;
@@ -100,6 +103,7 @@ class AddressServiceTest {
 
     @Test
     void findAll_quandoExistemEnderecos_deveRetornarTodosMapeados() {
+        when(access.userId()).thenReturn(1);
         Region region = new Region();
         Address firstAddress = address(ADDRESS_ID, region);
         Address secondAddress = new Address(2, region, "20040002", "Rio de Janeiro", "RJ", null, null);
@@ -107,7 +111,7 @@ class AddressServiceTest {
         AddressIO firstIO = savedAddressIO();
         AddressIO secondIO = new AddressIO(2, REGION_ID, "20040002", "Rio de Janeiro", "RJ", null, null);
 
-        when(addressRepository.findAll()).thenReturn(List.of(firstAddress, secondAddress));
+        when(addressRepository.findForUser(1)).thenReturn(List.of(firstAddress, secondAddress));
         when(addressMapper.toIo(firstAddress)).thenReturn(firstIO);
         when(addressMapper.toIo(secondAddress)).thenReturn(secondIO);
 
@@ -120,7 +124,8 @@ class AddressServiceTest {
 
     @Test
     void findAll_quandoNaoExistemEnderecos_deveRetornarListaVazia() {
-        when(addressRepository.findAll()).thenReturn(List.of());
+        when(access.userId()).thenReturn(1);
+        when(addressRepository.findForUser(1)).thenReturn(List.of());
 
         List<AddressIO> result = addressService.findAll();
 

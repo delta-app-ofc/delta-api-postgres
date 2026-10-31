@@ -3,6 +3,7 @@ package br.com.delta.delta_api_postgres.modules.habit.dto.requests;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
@@ -12,9 +13,11 @@ import java.util.List;
 public record CreateUserHabitRequest(
 
         @NotNull(message = "Habit ID é obrigatório")
+        @Positive(message = "Habit ID deve ser positivo")
         Integer habitId,
 
         @NotNull(message = "Frequency é obrigatório")
+        @Positive(message = "Frequência deve ser positiva")
         Integer frequency,
 
         LocalTime startTime,
@@ -26,7 +29,7 @@ public record CreateUserHabitRequest(
         BigDecimal estimatedLiters,
 
         @NotEmpty(message = "É necessário informar pelo menos um dia")
-        List<Integer> daysOfWeek
+        List<@NotNull @Positive Integer> daysOfWeek
 
 ) {
 }

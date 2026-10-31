@@ -1,5 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.device.service;
 
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.device.dto.io.DeviceIO;
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DeviceServiceTest {
+    @Mock private UserDataAccess access;
 
     private static final Integer DEVICE_ID = 1;
     private static final Integer PROPERTY_ID = 10;
@@ -99,6 +102,7 @@ class DeviceServiceTest {
 
     @Test
     void findAll_quandoExistemDispositivos_deveRetornarTodosMapeados() {
+        when(access.userId()).thenReturn(1);
         Property property = property();
         Device firstDevice = device(DEVICE_ID, property);
         Device secondDevice = device(2, property);
@@ -107,7 +111,7 @@ class DeviceServiceTest {
         DeviceIO firstIO = savedDeviceIO();
         DeviceIO secondIO = new DeviceIO(2, "DEVICE-002", PROPERTY_ID, true, INSTALLATION_DATE);
 
-        when(deviceRepository.findAll()).thenReturn(List.of(firstDevice, secondDevice));
+        when(deviceRepository.findForUser(1)).thenReturn(List.of(firstDevice, secondDevice));
         when(deviceMapper.toIO(firstDevice)).thenReturn(firstIO);
         when(deviceMapper.toIO(secondDevice)).thenReturn(secondIO);
 
@@ -120,7 +124,8 @@ class DeviceServiceTest {
 
     @Test
     void findAll_quandoNaoExistemDispositivos_deveRetornarListaVazia() {
-        when(deviceRepository.findAll()).thenReturn(List.of());
+        when(access.userId()).thenReturn(1);
+        when(deviceRepository.findForUser(1)).thenReturn(List.of());
 
         List<DeviceIO> result = deviceService.findAll();
 

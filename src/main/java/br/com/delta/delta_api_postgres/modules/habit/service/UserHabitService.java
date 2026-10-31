@@ -12,6 +12,7 @@ import br.com.delta.delta_api_postgres.modules.habit.repository.DayOfWeekReposit
 import br.com.delta.delta_api_postgres.modules.habit.repository.HabitRepository;
 import br.com.delta.delta_api_postgres.modules.habit.repository.UserHabitRepository;
 import lombok.RequiredArgsConstructor;
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Transactional
 public class UserHabitService {
+    private final UserDataAccess access;
 
     private final UserHabitRepository userHabitRepository;
     private final HabitRepository habitRepository;
@@ -34,6 +36,7 @@ public class UserHabitService {
     private final UserHabitMapper userHabitMapper;
 
     public UserHabitIO create(UserHabitIO io) {
+        access.requireUser(io.userId());
 
         validateTimes(io);
 
@@ -62,6 +65,7 @@ public class UserHabitService {
 
     @Transactional(readOnly = true)
     public List<UserHabitIO> findAll(Integer userId) {
+        access.requireUser(userId);
 
         return userHabitRepository.findByUserId(userId)
                 .stream()
@@ -74,6 +78,7 @@ public class UserHabitService {
             Integer userId,
             Integer id
     ) {
+        access.requireUser(userId);
 
         UserHabit userHabit = userHabitRepository
                 .findById(id)
@@ -93,6 +98,7 @@ public class UserHabitService {
             Integer id,
             UserHabitIO io
     ) {
+        access.requireUser(userId);
 
         validateTimes(io);
 
@@ -138,6 +144,7 @@ public class UserHabitService {
             Integer userId,
             Integer id
     ) {
+        access.requireUser(userId);
 
         UserHabit userHabit = userHabitRepository
                 .findById(id)

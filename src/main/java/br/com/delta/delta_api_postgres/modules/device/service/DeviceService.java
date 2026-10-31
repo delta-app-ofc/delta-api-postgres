@@ -10,6 +10,7 @@ import br.com.delta.delta_api_postgres.modules.device.repository.DeviceRepositor
 import br.com.delta.delta_api_postgres.modules.property.repository.PropertyRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -17,12 +18,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class DeviceService {
+    private final UserDataAccess access;
     private final DeviceRepository deviceRepository;
     private final PropertyRepository propertyRepository;
     private final DeviceMapper deviceMapper;
 
 
     public DeviceIO create(DeviceIO io) {
+        access.mutableProperty(io.propertyId());
 
         if(deviceRepository.existsByDeviceId(io.deviceId())){
             throw new ResourceAlreadyExistsException(
@@ -56,7 +59,7 @@ public class DeviceService {
     @Transactional(readOnly = true)
     public List<DeviceIO> findAll(){
 
-        return deviceRepository.findAll()
+        return deviceRepository.findForUser(access.userId())
                 .stream()
                 .map(deviceMapper::toIO)
                 .toList();
@@ -66,6 +69,7 @@ public class DeviceService {
 
     @Transactional(readOnly = true)
     public DeviceIO findById(Integer id){
+        access.device(id);
 
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->
@@ -84,6 +88,8 @@ public class DeviceService {
             Integer id,
             DeviceIO io
     ){
+        access.mutableDevice(id);
+        access.mutableProperty(io.propertyId());
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -122,6 +128,7 @@ public class DeviceService {
 
 
     public void delete(Integer id){
+        access.mutableDevice(id);
 
         Device device = deviceRepository.findById(id)
                 .orElseThrow(() ->

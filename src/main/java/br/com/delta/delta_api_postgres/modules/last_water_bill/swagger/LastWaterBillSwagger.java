@@ -13,8 +13,15 @@ import java.util.List;
 
 @Tag(
         name = "Last Water Bills",
-        description = "Operações para gerenciamento das últimas faturas de água"
+        description = "Contas do usuário autenticado. userId no corpo deve corresponder ao JWT e não pode transferir a titularidade."
 )
+@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")
+@ApiResponses({
+        @ApiResponse(responseCode = "401", description = "Sessão inválida ou conta inativa"),
+        @ApiResponse(responseCode = "403", description = "Identidade divergente ou operação sem permissão"),
+        @ApiResponse(responseCode = "404", description = "Recurso inexistente ou fora do escopo do usuário"),
+        @ApiResponse(responseCode = "409", description = "Duplicidade, compartilhamento ou dependência de exclusão")
+})
 public interface LastWaterBillSwagger {
 
     @Operation(summary = "Cadastrar fatura")

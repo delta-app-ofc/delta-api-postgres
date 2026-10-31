@@ -1,6 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.auth.controller;
 
 import br.com.delta.delta_api_postgres.modules.auth.dto.CompleteRegistrationRequest;
+import br.com.delta.delta_api_postgres.modules.auth.dto.UpdateProfileRequest;
 import br.com.delta.delta_api_postgres.modules.auth.service.RegistrationCompletionService;
 import br.com.delta.delta_api_postgres.modules.auth.security.CurrentUser;
 import br.com.delta.delta_api_postgres.modules.auth.service.AuthService;
@@ -67,6 +68,20 @@ public class AuthController implements AuthSwagger {
             @Valid @RequestBody CompleteRegistrationRequest request) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore())
                 .body(completion.complete(currentUser.id(), request));
+    }
+
+    @Override
+    @PutMapping("/me")
+    public ResponseEntity<AuthService.UserInfo> updateProfile(@Valid @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(auth.updateProfile(currentUser.id(), request));
+    }
+
+    @Override
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteProfile() {
+        auth.deleteProfile(currentUser.id());
+        return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
     }
     private ResponseEntity<TokenResponse> tokenResponse(AuthService.TokenPair tokens, HttpStatus status) {
         return ResponseEntity.status(status).cacheControl(CacheControl.noStore()).body(

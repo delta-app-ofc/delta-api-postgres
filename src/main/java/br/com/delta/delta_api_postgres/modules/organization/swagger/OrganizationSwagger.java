@@ -13,13 +13,20 @@ import java.util.List;
 
 @Tag(
         name = "Organizations",
-        description = "Operações para gerenciamento de organizações (perfil comercial/industrial)"
+        description = "Consulta de organizações dos imóveis vinculados ao usuário. POST, PUT e DELETE retornam 403 enquanto o modelo não definir permissão de administração."
 )
+@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")
+@ApiResponses({
+        @ApiResponse(responseCode = "401", description = "Sessão inválida ou conta inativa"),
+        @ApiResponse(responseCode = "403", description = "Identidade divergente ou operação sem permissão"),
+        @ApiResponse(responseCode = "404", description = "Recurso inexistente ou fora do escopo do usuário"),
+        @ApiResponse(responseCode = "409", description = "Duplicidade, compartilhamento ou dependência de exclusão")
+})
 public interface OrganizationSwagger {
 
     @Operation(summary = "Cadastrar organização")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Organização cadastrada"),
+            @ApiResponse(responseCode = "403", description = "Gestão de organizações sem permissão definida"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "409", description = "Já existe uma organização com esse CNPJ")
     })

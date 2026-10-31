@@ -1,5 +1,10 @@
 package br.com.delta.delta_api_postgres.modules.property.service;
 
+import br.com.delta.delta_api_postgres.modules.user_property.repository.UserPropertyRepository;
+import br.com.delta.delta_api_postgres.modules.user_property.entity.UserProperty;
+import br.com.delta.delta_api_postgres.modules.device.repository.DeviceRepository;
+import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
+
 import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
@@ -12,22 +17,38 @@ import br.com.delta.delta_api_postgres.modules.property.mapper.PropertyMapper;
 import br.com.delta.delta_api_postgres.modules.property.repository.PropertyClassificationRepository;
 import br.com.delta.delta_api_postgres.modules.property.repository.PropertyRepository;
 import lombok.RequiredArgsConstructor;
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class PropertyService {
+    private final UserDataAccess access;
+    private final UserPropertyRepository userPropertyRepository;
+    private final DeviceRepository deviceRepository;
     private final PropertyRepository propertyRepository;
     private final PropertyClassificationRepository propertyClassificationRepository;
     private final AddressRepository addressRepository;
     private final OrganizationRepository organizationRepository;
     private final PropertyMapper propertyMapper;
 
+    /** Public CRUD may reuse only an address already linked to this user. */
+    public PropertyIO createForExistingAddress(Integer userId, PropertyIO request) {
+        access.requireUser(userId);
+        access.mutableAddress(request.addressId());
+        return create(userId, request);
+    }
+
+    /** Registration supplies a newly created address inside its own transaction. */
     @Transactional
     public PropertyIO create(Integer userId, PropertyIO request) {
+        access.requireUser(userId);
+        access.assignAddress(request.addressId());
+        access.organization(request.organizationId());
         Integer propertyId = propertyRepository.registerProperty(
                 userId,
                 request.name(),
@@ -41,20 +62,30 @@ public class PropertyService {
         Property property = propertyRepository.findById(propertyId).orElseThrow(
                 () -> new IllegalStateException("A procedure não retornou uma propriedade válida")
         );
+        if (!userPropertyRepository.existsByUserIdAndProperty_Id(userId, propertyId)) {
+            var link = new UserProperty();
+            link.setUserId(userId);
+            link.setProperty(property);
+            userPropertyRepository.saveAndFlush(link);
+        }
         return propertyMapper.toIO(property);
     }
     @Transactional(readOnly = true)
     public List<PropertyIO> findAll() {
-        return propertyRepository.findAll().stream().map(propertyMapper::toIO).toList();
+        return propertyRepository.findForUser(access.userId()).stream().map(propertyMapper::toIO).toList();
     }
     @Transactional(readOnly = true)
     public PropertyIO findById(Integer id) {
+        access.property(id);
         Property property = propertyRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Propriedade nao encontrada")
         );
         return propertyMapper.toIO(property);
     }
     public PropertyIO update(Integer id, PropertyIO request) {
+        access.mutableProperty(id);
+        access.mutableAddress(request.addressId());
+        access.organization(request.organizationId());
         Property property = propertyRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Propriedade nao encontrada")
         );
@@ -79,9 +110,17 @@ public class PropertyService {
         return propertyMapper.toIO(updatedProperty);
     }
     public void delete(Integer id) {
+        access.mutableProperty(id);
         Property property = propertyRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Propriedade nao encontrada")
         );
+        if (deviceRepository.existsByProperty_Id(id)) {
+            throw new ResourceAlreadyExistsException(
+                    "Remova os dispositivos antes de excluir o imóvel.");
+        }
+        userPropertyRepository.deleteByProperty_Id(id);
+        userPropertyRepository.flush();
         propertyRepository.delete(property);
+        propertyRepository.flush();
     }
 }

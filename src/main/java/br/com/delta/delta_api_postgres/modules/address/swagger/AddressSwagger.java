@@ -13,8 +13,15 @@ import java.util.List;
 
 @Tag(
         name = "Addresses",
-        description = "Operações para gerenciamento de endereços"
+        description = "Endereços consultados pelo vínculo usuário–imóvel. Alteração de endereço compartilhado ou exclusão de endereço referenciado retorna 409."
 )
+@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")
+@ApiResponses({
+        @ApiResponse(responseCode = "401", description = "Sessão inválida ou conta inativa"),
+        @ApiResponse(responseCode = "403", description = "Identidade divergente ou operação sem permissão"),
+        @ApiResponse(responseCode = "404", description = "Recurso inexistente ou fora do escopo do usuário"),
+        @ApiResponse(responseCode = "409", description = "Duplicidade, compartilhamento ou dependência de exclusão")
+})
 public interface AddressSwagger {
 
     @Operation(summary = "Cadastrar endereço")

@@ -7,6 +7,7 @@ import br.com.delta.delta_api_postgres.modules.last_water_bill.entity.LastWaterB
 import br.com.delta.delta_api_postgres.modules.last_water_bill.mapper.LastWaterBillMapper;
 import br.com.delta.delta_api_postgres.modules.last_water_bill.repository.LastWaterBillRepository;
 import lombok.RequiredArgsConstructor;
+import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,11 +17,13 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class LastWaterBillService {
+    private final UserDataAccess access;
 
     private final LastWaterBillRepository lastWaterBillRepository;
     private final LastWaterBillMapper lastWaterBillMapper;
 
     public LastWaterBillIO create(LastWaterBillIO io) {
+        access.requireUser(io.userId());
 
         if (lastWaterBillRepository.existsByUserIdAndMonth(
                 io.userId(),
@@ -41,7 +44,7 @@ public class LastWaterBillService {
     @Transactional(readOnly = true)
     public List<LastWaterBillIO> findAll() {
 
-        return lastWaterBillRepository.findAll()
+        return lastWaterBillRepository.findByUserId(access.userId())
                 .stream()
                 .map(lastWaterBillMapper::toIO)
                 .toList();
@@ -49,6 +52,7 @@ public class LastWaterBillService {
 
     @Transactional(readOnly = true)
     public LastWaterBillIO findById(Integer id) {
+        access.bill(id);
 
         LastWaterBill lastWaterBill = lastWaterBillRepository.findById(id)
                 .orElseThrow(() ->
@@ -62,6 +66,8 @@ public class LastWaterBillService {
             Integer id,
             LastWaterBillIO io
     ) {
+        access.bill(id);
+        access.requireUser(io.userId());
 
         LastWaterBill lastWaterBill = lastWaterBillRepository.findById(id)
                 .orElseThrow(() ->
@@ -90,6 +96,7 @@ public class LastWaterBillService {
     }
 
     public void delete(Integer id) {
+        access.bill(id);
 
         LastWaterBill lastWaterBill = lastWaterBillRepository.findById(id)
                 .orElseThrow(() ->
