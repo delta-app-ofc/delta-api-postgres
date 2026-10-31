@@ -57,7 +57,7 @@ public class RegistrationCompletionService {
             throw new ResourceAlreadyExistsException("Usuário já possui hábitos cadastrados. Utilize as rotas de atualização.");
 
         var a = request.address();
-        var address = addresses.create(new AddressIO(null, a.regionId(), a.cep(), a.city(), a.state(),
+        var address = addresses.create(new AddressIO(null, null, a.cep(), a.city(), a.state(),
                 a.latitude(), a.longitude()));
         var p = request.property();
         var property = properties.create(userId, new PropertyIO(null, p.name(), p.type(),
@@ -66,7 +66,8 @@ public class RegistrationCompletionService {
         if (associations.findAll(userId).stream().noneMatch(link -> link.propertyId().equals(property.id())))
             associations.create(new UserPropertyIO(null, userId, property.id(), null, null));
         var savedHabits = request.habits().stream().map(h -> habits.create(new UserHabitIO(
-                null, userId, h.habitId(), null, null, h.frequency(), h.daysOfWeek()))).toList();
+                null, userId, h.habitId(), null, null, null, h.frequency(),
+                h.startTime(), h.endTime(), h.estimatedLiters(), h.daysOfWeek()))).toList();
         return new Result(userId, true, address, property, savedHabits);
     }
 
@@ -74,7 +75,7 @@ public class RegistrationCompletionService {
                             List<UserHabitIO> savedHabits) {
         var address = request.address();
         var property = request.property();
-        return Objects.equals(address.regionId(), a.regionId()) && Objects.equals(address.cep(), a.cep())
+        return Objects.equals(address.cep(), a.cep())
                 && Objects.equals(address.city(), a.city()) && Objects.equals(address.state(), a.state())
                 && Objects.equals(property.name(), p.name()) && property.type() == p.type()
                 && property.classification() == p.classification()
@@ -84,6 +85,9 @@ public class RegistrationCompletionService {
                 && request.habits().size() == savedHabits.size()
                 && request.habits().stream().allMatch(h -> savedHabits.stream().anyMatch(saved ->
                     Objects.equals(h.habitId(), saved.habitId()) && Objects.equals(h.frequency(), saved.frequency())
+                    && Objects.equals(h.startTime(), saved.startTime()) && Objects.equals(h.endTime(), saved.endTime())
+                    && (h.estimatedLiters() == null ? saved.estimatedLiters() == null
+                        : saved.estimatedLiters() != null && h.estimatedLiters().compareTo(saved.estimatedLiters()) == 0)
                     && new HashSet<>(h.daysOfWeek()).equals(new HashSet<>(saved.daysOfWeek()))));
     }
 }

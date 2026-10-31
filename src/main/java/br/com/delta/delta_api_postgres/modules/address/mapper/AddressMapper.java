@@ -36,7 +36,7 @@ public class AddressMapper {
     public AddressIO fromCreateRequest(CreateAddressRequest createAddressRequest){
         return new AddressIO(
                 null,
-                createAddressRequest.regionId(),
+                null,
                 createAddressRequest.cep(),
                 createAddressRequest.city(),
                 createAddressRequest.state(),
@@ -48,7 +48,7 @@ public class AddressMapper {
     public AddressIO fromUpdateRequest(Integer id, UpdateAddressRequest updateAddressRequest){
         return new AddressIO(
                 id,
-                updateAddressRequest.regionId(),
+                null,
                 updateAddressRequest.cep(),
                 updateAddressRequest.city(),
                 updateAddressRequest.state(),

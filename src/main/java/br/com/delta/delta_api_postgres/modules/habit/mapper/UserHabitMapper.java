@@ -19,7 +19,11 @@ public class UserHabitMapper {
                 request.habitId(),
                 null,
                 null,
+                null,
                 request.frequency(),
+                request.startTime(),
+                request.endTime(),
+                request.estimatedLiters(),
                 request.daysOfWeek()
         );
     }
@@ -35,7 +39,11 @@ public class UserHabitMapper {
                 request.habitId(),
                 null,
                 null,
+                null,
                 request.frequency(),
+                request.startTime(),
+                request.endTime(),
+                request.estimatedLiters(),
                 request.daysOfWeek()
         );
     }
@@ -47,8 +55,12 @@ public class UserHabitMapper {
                 userHabit.getUserId(),
                 userHabit.getHabit().getId(),
                 userHabit.getHabit().getName(),
+                userHabit.getHabit().getCategory(),
                 userHabit.getHabit().getDescription(),
                 userHabit.getFrequency(),
+                userHabit.getStartTime(),
+                userHabit.getEndTime(),
+                userHabit.getEstimatedLiters(),
                 userHabit.getDays()
                         .stream()
                         .map(day -> day.getDayOfWeek().getId())
