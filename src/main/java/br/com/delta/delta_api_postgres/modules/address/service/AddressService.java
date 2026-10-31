@@ -6,7 +6,7 @@ import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.mapper.AddressMapper;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
 import br.com.delta.delta_api_postgres.modules.region.entity.Region;
-import br.com.delta.delta_api_postgres.modules.region.repository.CityRegionRepository;
+import br.com.delta.delta_api_postgres.modules.region.repository.MunicipalityRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.util.List;
 @Transactional
 public class AddressService {
     private final AddressRepository addressRepository;
-    private final CityRegionRepository cityRegionRepository;
+    private final MunicipalityRepository municipalityRepository;
     private final AddressMapper addressMapper;
 
     public AddressIO create(AddressIO addressIO) {
@@ -55,13 +55,20 @@ public class AddressService {
         return addressMapper.toIo(addressRepository.save(address));
     }
     private Region findRegionByCity(AddressIO addressIO) {
-        return cityRegionRepository
-                .findByCityIgnoreCaseAndState(addressIO.city().trim(), addressIO.state().trim().toUpperCase())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "O Delta atende apenas cidades de São Paulo cobertas pela Sabesp."
-                ))
+        if (!"SP".equalsIgnoreCase(addressIO.state().trim())) {
+            throw cityNotServed();
+        }
+        return municipalityRepository
+                .findByNameIgnoreCase(addressIO.city().trim())
+                .orElseThrow(this::cityNotServed)
                 .getRegion();
+    }
+
+    private ResponseStatusException cityNotServed() {
+        return new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "O Delta atende apenas cidades de São Paulo cobertas pela Sabesp."
+        );
     }
     public void delete(Integer id) {
         Address address = addressRepository.findById(id).orElseThrow(

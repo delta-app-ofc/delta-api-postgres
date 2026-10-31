@@ -1,7 +1,7 @@
 package br.com.delta.delta_api_postgres.modules.region.repository;
 
 import br.com.delta.delta_api_postgres.AuthTestConfig;
-import br.com.delta.delta_api_postgres.modules.region.entity.CityRegion;
+import br.com.delta.delta_api_postgres.modules.region.entity.Municipality;
 import br.com.delta.delta_api_postgres.modules.region.entity.Region;
 import br.com.delta.delta_api_postgres.modules.region.enums.RegionName;
 import org.junit.jupiter.api.Test;
@@ -12,25 +12,24 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-class CityRegionRepositoryTests extends AuthTestConfig {
+class MunicipalityRepositoryTests extends AuthTestConfig {
     @Autowired RegionRepository regions;
-    @Autowired CityRegionRepository cityRegions;
+    @Autowired MunicipalityRepository municipalities;
 
     @Test void findsCityIgnoringCaseAndReturnsItsRegion() {
         var region = new Region();
         ReflectionTestUtils.setField(region, "name", RegionName.LINS);
         region = regions.saveAndFlush(region);
-        cityRegions.saveAndFlush(new CityRegion("Lins", "SP", region));
+        municipalities.saveAndFlush(new Municipality("Lins", 3527108, region));
 
-        var found = cityRegions.findByCityIgnoreCaseAndState("LINS", "SP");
+        var found = municipalities.findByNameIgnoreCase("LINS");
 
         assertThat(found).isPresent();
         assertThat(found.get().getRegion().getId()).isEqualTo(region.getId());
-        assertThat(cityRegions.findByCityIgnoreCaseAndState("lins", "SP")).isPresent();
+        assertThat(municipalities.findByNameIgnoreCase("lins")).isPresent();
     }
 
-    @Test void doesNotFindCityOutsideTheMapOrFromAnotherState() {
-        assertThat(cityRegions.findByCityIgnoreCaseAndState("Campinas", "SP")).isEmpty();
-        assertThat(cityRegions.findByCityIgnoreCaseAndState("Lins", "RJ")).isEmpty();
+    @Test void doesNotFindCityOutsideTheList() {
+        assertThat(municipalities.findByNameIgnoreCase("Campinas")).isEmpty();
     }
 }

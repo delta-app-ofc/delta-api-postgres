@@ -5,9 +5,9 @@ import br.com.delta.delta_api_postgres.modules.address.dto.io.AddressIO;
 import br.com.delta.delta_api_postgres.modules.address.entity.Address;
 import br.com.delta.delta_api_postgres.modules.address.mapper.AddressMapper;
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
-import br.com.delta.delta_api_postgres.modules.region.entity.CityRegion;
+import br.com.delta.delta_api_postgres.modules.region.entity.Municipality;
 import br.com.delta.delta_api_postgres.modules.region.entity.Region;
-import br.com.delta.delta_api_postgres.modules.region.repository.CityRegionRepository;
+import br.com.delta.delta_api_postgres.modules.region.repository.MunicipalityRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,7 +40,7 @@ class AddressServiceTest {
     private AddressRepository addressRepository;
 
     @Mock
-    private CityRegionRepository cityRegionRepository;
+    private MunicipalityRepository municipalityRepository;
 
     @Mock
     private AddressMapper addressMapper;
@@ -57,7 +57,7 @@ class AddressServiceTest {
         Address savedAddress = address(ADDRESS_ID, region);
         AddressIO expected = savedAddressIO();
 
-        when(cityRegionRepository.findByCityIgnoreCaseAndState(CITY, STATE)).thenReturn(Optional.of(cityRegion(region)));
+        when(municipalityRepository.findByNameIgnoreCase(CITY)).thenReturn(Optional.of(municipality(region)));
         when(addressMapper.toEntity(input, region)).thenReturn(address);
         when(addressRepository.save(address)).thenReturn(savedAddress);
         when(addressMapper.toIo(savedAddress)).thenReturn(expected);
@@ -74,7 +74,7 @@ class AddressServiceTest {
     @Test
     void create_quandoCidadeNaoTemRegiao_deveLancarBadRequest() {
         AddressIO input = inputAddressIO();
-        when(cityRegionRepository.findByCityIgnoreCaseAndState(CITY, STATE)).thenReturn(Optional.empty());
+        when(municipalityRepository.findByNameIgnoreCase(CITY)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.create(input))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
@@ -83,6 +83,19 @@ class AddressServiceTest {
 
         verify(addressRepository, never()).save(any());
         verifyNoInteractions(addressMapper);
+    }
+
+    @Test
+    void create_quandoEstadoNaoESp_deveLancarBadRequestSemConsultarMunicipio() {
+        AddressIO input = new AddressIO(null, REGION_ID, CEP, CITY, "RJ", null, null);
+
+        assertThatThrownBy(() -> addressService.create(input))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST))
+                .hasMessageContaining("apenas cidades de São Paulo");
+
+        verify(addressRepository, never()).save(any());
+        verifyNoInteractions(municipalityRepository, addressMapper);
     }
 
     @Test
@@ -148,7 +161,7 @@ class AddressServiceTest {
         AddressIO expected = savedAddressIO();
 
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
-        when(cityRegionRepository.findByCityIgnoreCaseAndState(CITY, STATE)).thenReturn(Optional.of(cityRegion(region)));
+        when(municipalityRepository.findByNameIgnoreCase(CITY)).thenReturn(Optional.of(municipality(region)));
         when(addressRepository.save(address)).thenReturn(address);
         when(addressMapper.toIo(address)).thenReturn(expected);
 
@@ -169,7 +182,7 @@ class AddressServiceTest {
                 .hasMessage("Endereço nao encontrado");
 
         verify(addressRepository, never()).save(any());
-        verifyNoInteractions(cityRegionRepository, addressMapper);
+        verifyNoInteractions(municipalityRepository, addressMapper);
     }
 
     @Test
@@ -178,7 +191,7 @@ class AddressServiceTest {
         Address address = address(ADDRESS_ID, new Region());
 
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
-        when(cityRegionRepository.findByCityIgnoreCaseAndState(CITY, STATE)).thenReturn(Optional.empty());
+        when(municipalityRepository.findByNameIgnoreCase(CITY)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.update(ADDRESS_ID, input))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
@@ -210,8 +223,8 @@ class AddressServiceTest {
         verify(addressRepository, never()).delete(any());
     }
 
-    private CityRegion cityRegion(Region region) {
-        return new CityRegion(CITY, STATE, region);
+    private Municipality municipality(Region region) {
+        return new Municipality(CITY, 3550308, region);
     }
 
     private AddressIO inputAddressIO() {
