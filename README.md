@@ -84,3 +84,5 @@ Erros seguem `ErrorResponse`: `400` para dados inválidos, `401` para sessão au
 Execute `./mvnw.cmd test` no Windows. Os testes de integração usam H2, JWT assinado e Redis simulado; cobrem perfil, desativação, isolamento entre usuários, recursos compartilhados e dependências. Procedures, triggers, FKs adicionais e concorrência específica do PostgreSQL precisam ser validados em um banco de testes com o schema real antes de produção.
 
 Resultado da validação desta implementação: 137 testes aprovados, incluindo 21 novos cenários de perfil e autorização. Os 10 testes HTTP existentes de dispositivos tiveram erro de inicialização por loopback do Java neste ambiente (`Unable to establish loopback connection`); a suíte completa ainda precisa ser repetida em ambiente com sockets locais funcionais. Nenhum teste foi desabilitado.
+
+Consulte [DOCKER-HELP.md](DOCKER-HELP.md) para executar a suíte local em Docker e construir a imagem da aplicação.
