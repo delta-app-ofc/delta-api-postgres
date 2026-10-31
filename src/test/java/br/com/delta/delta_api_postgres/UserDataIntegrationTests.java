@@ -14,7 +14,9 @@ import br.com.delta.delta_api_postgres.modules.property.entity.Property;
 import br.com.delta.delta_api_postgres.modules.property.entity.PropertyClassificationEntity;
 import br.com.delta.delta_api_postgres.modules.property.enums.*;
 import br.com.delta.delta_api_postgres.modules.region.entity.Region;
+import br.com.delta.delta_api_postgres.modules.region.entity.Municipality;
 import br.com.delta.delta_api_postgres.modules.region.enums.RegionName;
+import br.com.delta.delta_api_postgres.modules.region.repository.MunicipalityRepository;
 import br.com.delta.delta_api_postgres.modules.user_property.entity.UserProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -50,6 +52,7 @@ class UserDataIntegrationTests extends AuthTestConfig {
     @Autowired PasswordEncoder encoder;
     @Autowired Clock clock;
     @Autowired ObjectMapper json;
+    @Autowired MunicipalityRepository municipalities;
     @MockitoBean StringRedisTemplate redis;
 
     AuthUser alice, bob;
@@ -74,6 +77,7 @@ class UserDataIntegrationTests extends AuthTestConfig {
                     em.persist(r);
                     return r;
                 });
+        municipalities.saveAndFlush(new Municipality("Santos", 3548500, region));
         var classification = em.createQuery("from PropertyClassificationEntity where name = :name", PropertyClassificationEntity.class)
                 .setParameter("name", PropertyClassification.RESIDENCIAL_NORMAL).getResultStream().findFirst()
                 .orElseGet(() -> {
@@ -91,7 +95,7 @@ class UserDataIntegrationTests extends AuthTestConfig {
         bobDevice = device(bobProperty);
         aliceBill = bill(alice);
         bobBill = bill(bob);
-        var habit = new Habit(null, "Banho", "Banho diário");
+        var habit = new Habit(null, "Banho", "Higiene", "Banho diário");
         em.persist(habit);
         day = new DayOfWeek(null, "Segunda-feira");
         em.persist(day);
