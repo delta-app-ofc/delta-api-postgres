@@ -8,8 +8,10 @@ import br.com.delta.delta_api_postgres.modules.address.dto.request.CreateAddress
 import br.com.delta.delta_api_postgres.modules.address.repository.AddressRepository;
 import br.com.delta.delta_api_postgres.modules.property.service.PropertyService;
 import br.com.delta.delta_api_postgres.modules.property.enums.*;
+import br.com.delta.delta_api_postgres.modules.region.entity.Municipality;
 import br.com.delta.delta_api_postgres.modules.region.entity.Region;
 import br.com.delta.delta_api_postgres.modules.region.enums.RegionName;
+import br.com.delta.delta_api_postgres.modules.region.repository.MunicipalityRepository;
 import br.com.delta.delta_api_postgres.modules.region.repository.RegionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ class RegistrationRollbackTests extends AuthTestConfig {
     @Autowired AuthUserRepository users;
     @Autowired AddressRepository addresses;
     @Autowired RegionRepository regions;
+    @Autowired MunicipalityRepository municipalities;
     @MockitoBean PropertyService properties;
 
     @org.junit.jupiter.api.AfterEach void clearSecurity() {
@@ -42,8 +45,9 @@ class RegistrationRollbackTests extends AuthTestConfig {
         var region = new Region();
         ReflectionTestUtils.setField(region, "name", RegionName.GRANDE_SP);
         region = regions.saveAndFlush(region);
+        municipalities.saveAndFlush(new Municipality("São Paulo", 3550308, region));
         var request = new CompleteRegistrationRequest(
-                new CreateAddressRequest(region.getId(), "01001000", "São Paulo", "SP", null, null),
+                new CreateAddressRequest("01001000", "São Paulo", "SP", null, null),
                 new CompleteRegistrationRequest.PropertyDetails("Casa", PropertyType.CASA,
                         PropertyClassification.RESIDENCIAL_NORMAL, null, null), List.of());
         var before = addresses.count();

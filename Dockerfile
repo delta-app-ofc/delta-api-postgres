@@ -1,3 +1,12 @@
+FROM maven:3.9-eclipse-temurin-17 AS test
+
+WORKDIR /build
+
+COPY pom.xml ./
+COPY src ./src
+
+CMD ["mvn", "--batch-mode", "--no-transfer-progress", "test"]
+
 FROM maven:3.9-eclipse-temurin-17 AS build
 
 WORKDIR /build
