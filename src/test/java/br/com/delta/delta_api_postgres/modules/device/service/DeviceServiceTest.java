@@ -50,7 +50,7 @@ class DeviceServiceTest {
     private DeviceService deviceService;
 
     @Test
-    void create_quandoDadosValidos_deveSalvarERetornarDispositivo() {
+    void create_whenValidData_savesAndReturnsDevice() {
         // Arrange
         DeviceIO input = inputDeviceIO();
         Property property = property();
@@ -74,7 +74,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void create_quandoDeviceIdJaExiste_deveLancarResourceAlreadyExistsException() {
+    void create_whenDeviceIdAlreadyExists_throwsResourceAlreadyExistsException() {
         DeviceIO input = inputDeviceIO();
         when(deviceRepository.existsByDeviceId(DEVICE_CODE)).thenReturn(true);
 
@@ -87,7 +87,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void create_quandoPropriedadeNaoExiste_deveLancarResourceNotFoundException() {
+    void create_whenPropertyDoesNotExist_throwsResourceNotFoundException() {
         DeviceIO input = inputDeviceIO();
         when(deviceRepository.existsByDeviceId(DEVICE_CODE)).thenReturn(false);
         when(propertyRepository.findById(PROPERTY_ID)).thenReturn(Optional.empty());
@@ -101,7 +101,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void findAll_quandoExistemDispositivos_deveRetornarTodosMapeados() {
+    void findAll_whenDevicesExist_returnsAllMapped() {
         when(access.userId()).thenReturn(1);
         Property property = property();
         Device firstDevice = device(DEVICE_ID, property);
@@ -123,7 +123,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void findAll_quandoNaoExistemDispositivos_deveRetornarListaVazia() {
+    void findAll_whenNoDevicesExist_returnsEmptyList() {
         when(access.userId()).thenReturn(1);
         when(deviceRepository.findForUser(1)).thenReturn(List.of());
 
@@ -134,7 +134,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void findById_quandoDispositivoExiste_deveRetornarDispositivoMapeado() {
+    void findById_whenDeviceExists_returnsDeviceMapped() {
         Device device = device(DEVICE_ID, property());
         DeviceIO expected = savedDeviceIO();
 
@@ -148,7 +148,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void findById_quandoDispositivoNaoExiste_deveLancarResourceNotFoundException() {
+    void findById_whenDeviceDoesNotExist_throwsResourceNotFoundException() {
         when(deviceRepository.findById(DEVICE_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> deviceService.findById(DEVICE_ID))
@@ -159,7 +159,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void update_quandoDadosValidos_deveAtualizarERetornarDispositivo() {
+    void update_whenValidData_updatesAndReturnsDevice() {
         DeviceIO input = inputDeviceIO();
         Property property = property();
         Device device = device(DEVICE_ID, property);
@@ -178,7 +178,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void update_quandoDispositivoNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenDeviceDoesNotExist_throwsResourceNotFoundException() {
         DeviceIO input = inputDeviceIO();
         when(deviceRepository.findById(DEVICE_ID)).thenReturn(Optional.empty());
 
@@ -191,7 +191,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void update_quandoIdentidadeMuda_deveRecusarAntesDeAtualizar() {
+    void update_whenIdentityChanges_rejectsBeforeUpdating() {
         DeviceIO input = new DeviceIO(DEVICE_ID, "DEVICE-NEW", PROPERTY_ID, true, null);
         Device device = device(DEVICE_ID, property());
 
@@ -205,7 +205,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void update_quandoPropriedadeNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenPropertyDoesNotExist_throwsResourceNotFoundException() {
         DeviceIO input = inputDeviceIO();
         Device device = device(DEVICE_ID, property());
 
@@ -221,7 +221,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void delete_quandoDispositivoExiste_deveExcluirDispositivo() {
+    void delete_whenDeviceExists_deletesDevice() {
         Device device = device(DEVICE_ID, property());
         when(deviceRepository.findById(DEVICE_ID)).thenReturn(Optional.of(device));
 
@@ -231,7 +231,7 @@ class DeviceServiceTest {
     }
 
     @Test
-    void delete_quandoDispositivoNaoExiste_deveLancarResourceNotFoundException() {
+    void delete_whenDeviceDoesNotExist_throwsResourceNotFoundException() {
         when(deviceRepository.findById(DEVICE_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> deviceService.delete(DEVICE_ID))

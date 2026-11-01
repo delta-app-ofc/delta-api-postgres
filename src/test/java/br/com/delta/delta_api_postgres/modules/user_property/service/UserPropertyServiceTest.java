@@ -56,7 +56,7 @@ class UserPropertyServiceTest {
     private UserPropertyService userPropertyService;
 
     @Test
-    void create_quandoDadosValidos_deveSalvarERetornarAssociacao() {
+    void create_whenValidData_savesAndReturnsAssociation() {
         // Arrange
         UserPropertyIO input = inputUserPropertyIO(PROPERTY_ID);
         Property property = property(PROPERTY_ID, "Casa principal");
@@ -81,7 +81,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void create_quandoAssociacaoJaExiste_deveLancarResourceAlreadyExistsException() {
+    void create_whenAssociationAlreadyExists_throwsResourceAlreadyExistsException() {
         UserPropertyIO input = inputUserPropertyIO(PROPERTY_ID);
         when(userPropertyRepository.existsByUserIdAndProperty_Id(USER_ID, PROPERTY_ID))
                 .thenReturn(true);
@@ -95,7 +95,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void create_quandoImovelNaoExiste_deveLancarResourceNotFoundException() {
+    void create_whenPropertyDoesNotExist_throwsResourceNotFoundException() {
         UserPropertyIO input = inputUserPropertyIO(PROPERTY_ID);
         when(userPropertyRepository.existsByUserIdAndProperty_Id(USER_ID, PROPERTY_ID))
                 .thenReturn(false);
@@ -110,7 +110,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void findAll_quandoExistemAssociacoes_deveRetornarTodasDoUsuarioMapeadas() {
+    void findAll_whenAssociationsExist_returnsAllOfUserMapped() {
         UserProperty first = userProperty(
                 USER_PROPERTY_ID,
                 USER_ID,
@@ -142,7 +142,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void findAll_quandoNaoExistemAssociacoes_deveRetornarListaVazia() {
+    void findAll_whenNoAssociationsExist_returnsEmptyList() {
         when(userPropertyRepository.findByUserId(USER_ID)).thenReturn(List.of());
 
         List<UserPropertyIO> result = userPropertyService.findAll(USER_ID);
@@ -152,7 +152,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void findById_quandoAssociacaoExisteEPertenceAoUsuario_deveRetornarAssociacaoMapeada() {
+    void findById_whenAssociationExistsAndBelongsToUser_returnsAssociationMapped() {
         UserProperty userProperty = userProperty(
                 USER_PROPERTY_ID,
                 USER_ID,
@@ -170,7 +170,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void findById_quandoAssociacaoNaoExiste_deveLancarResourceNotFoundException() {
+    void findById_whenAssociationDoesNotExist_throwsResourceNotFoundException() {
         when(userPropertyRepository.findById(USER_PROPERTY_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userPropertyService.findById(USER_ID, USER_PROPERTY_ID))
@@ -181,7 +181,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void findById_quandoAssociacaoPertenceAOutroUsuario_deveLancarResourceNotFoundException() {
+    void findById_whenAssociationBelongsToAnotherUser_throwsResourceNotFoundException() {
         UserProperty userProperty = userProperty(
                 USER_PROPERTY_ID,
                 OTHER_USER_ID,
@@ -197,7 +197,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void update_quandoNovoImovelValido_deveAtualizarERetornarAssociacao() {
+    void update_whenNewPropertyValid_updatesAndReturnsAssociation() {
         Property currentProperty = property(PROPERTY_ID, "Casa principal");
         Property newProperty = property(NEW_PROPERTY_ID, "Casa de praia");
         UserProperty userProperty = userProperty(USER_PROPERTY_ID, USER_ID, currentProperty);
@@ -219,7 +219,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void update_quandoImovelNaoMudou_deveAtualizarSemVerificarDuplicidade() {
+    void update_whenPropertyDidNotChange_updatesWithoutCheckingDuplicates() {
         Property property = property(PROPERTY_ID, "Casa principal");
         UserProperty userProperty = userProperty(USER_PROPERTY_ID, USER_ID, property);
         UserPropertyIO input = inputUserPropertyIO(PROPERTY_ID);
@@ -238,7 +238,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void update_quandoAssociacaoNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenAssociationDoesNotExist_throwsResourceNotFoundException() {
         UserPropertyIO input = inputUserPropertyIO(NEW_PROPERTY_ID);
         when(userPropertyRepository.findById(USER_PROPERTY_ID)).thenReturn(Optional.empty());
 
@@ -250,7 +250,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void update_quandoAssociacaoPertenceAOutroUsuario_deveLancarResourceNotFoundException() {
+    void update_whenAssociationBelongsToAnotherUser_throwsResourceNotFoundException() {
         UserProperty userProperty = userProperty(
                 USER_PROPERTY_ID,
                 OTHER_USER_ID,
@@ -267,7 +267,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void update_quandoNovoImovelJaEstaAssociado_deveLancarResourceAlreadyExistsException() {
+    void update_whenNewPropertyIsAlreadyLinked_throwsResourceAlreadyExistsException() {
         UserProperty userProperty = userProperty(
                 USER_PROPERTY_ID,
                 USER_ID,
@@ -287,7 +287,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void update_quandoNovoImovelNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenNewPropertyDoesNotExist_throwsResourceNotFoundException() {
         UserProperty userProperty = userProperty(
                 USER_PROPERTY_ID,
                 USER_ID,
@@ -308,7 +308,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void delete_quandoAssociacaoExisteEPertenceAoUsuario_deveExcluirAssociacao() {
+    void delete_whenAssociationExistsAndBelongsToUser_deletesAssociation() {
         UserProperty userProperty = userProperty(
                 USER_PROPERTY_ID,
                 USER_ID,
@@ -322,7 +322,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void delete_quandoAssociacaoNaoExiste_deveLancarResourceNotFoundException() {
+    void delete_whenAssociationDoesNotExist_throwsResourceNotFoundException() {
         when(userPropertyRepository.findById(USER_PROPERTY_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userPropertyService.delete(USER_ID, USER_PROPERTY_ID))
@@ -333,7 +333,7 @@ class UserPropertyServiceTest {
     }
 
     @Test
-    void delete_quandoAssociacaoPertenceAOutroUsuario_deveLancarResourceNotFoundException() {
+    void delete_whenAssociationBelongsToAnotherUser_throwsResourceNotFoundException() {
         UserProperty userProperty = userProperty(
                 USER_PROPERTY_ID,
                 OTHER_USER_ID,

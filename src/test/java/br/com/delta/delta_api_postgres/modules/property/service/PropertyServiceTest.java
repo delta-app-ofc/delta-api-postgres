@@ -72,7 +72,7 @@ class PropertyServiceTest {
     private PropertyService propertyService;
 
     @Test
-    void create_quandoDadosValidos_deveChamarProcedureERetornarPropriedade() {
+    void create_whenValidData_callsProcedureAndReturnsProperty() {
         PropertyIO input = inputPropertyIO();
         Property savedProperty = property(PROPERTY_ID, PROPERTY_NAME, ORGANIZATION_ID, BUILT_AREA_M2);
         PropertyIO expected = savedPropertyIO();
@@ -93,7 +93,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void create_quandoProcedureJaCriaVinculo_naoDeveDuplicarAssociacao() {
+    void create_whenProcedureAlreadyCreatesLink_doesNotDuplicateAssociation() {
         Property savedProperty = property(PROPERTY_ID, PROPERTY_NAME, ORGANIZATION_ID, BUILT_AREA_M2);
         when(propertyRepository.registerProperty(USER_ID, PROPERTY_NAME, PROPERTY_TYPE.name(), CLASSIFICATION.name(),
                 ADDRESS_ID, ORGANIZATION_ID, BUILT_AREA_M2)).thenReturn(PROPERTY_ID);
@@ -106,7 +106,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void create_quandoProcedureNaoRetornaPropriedadeValida_deveLancarIllegalStateException() {
+    void create_whenProcedureDoesNotReturnValidProperty_throwsIllegalStateException() {
         PropertyIO input = inputPropertyIO();
 
         when(propertyRepository.registerProperty(
@@ -123,7 +123,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void findAll_quandoExistemPropriedades_deveRetornarTodasMapeadas() {
+    void findAll_whenPropertiesExist_returnsAllMapped() {
         when(access.userId()).thenReturn(1);
         Property firstProperty = property(PROPERTY_ID, PROPERTY_NAME, ORGANIZATION_ID, BUILT_AREA_M2);
         Property secondProperty = property(2, "Loja", null, null);
@@ -151,7 +151,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void findAll_quandoNaoExistemPropriedades_deveRetornarListaVazia() {
+    void findAll_whenNoPropertiesExist_returnsEmptyList() {
         when(access.userId()).thenReturn(1);
         when(propertyRepository.findForUser(1)).thenReturn(List.of());
 
@@ -162,7 +162,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void findById_quandoPropriedadeExiste_deveRetornarPropriedadeMapeada() {
+    void findById_whenPropertyExists_returnsPropertyMapped() {
         Property property = property(PROPERTY_ID, PROPERTY_NAME, ORGANIZATION_ID, BUILT_AREA_M2);
         PropertyIO expected = savedPropertyIO();
 
@@ -176,7 +176,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void findById_quandoPropriedadeNaoExiste_deveLancarResourceNotFoundException() {
+    void findById_whenPropertyDoesNotExist_throwsResourceNotFoundException() {
         when(propertyRepository.findById(PROPERTY_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> propertyService.findById(PROPERTY_ID))
@@ -187,7 +187,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void update_quandoDadosValidos_deveAtualizarERetornarPropriedade() {
+    void update_whenValidData_updatesAndReturnsProperty() {
         PropertyIO input = inputPropertyIO();
         Address address = address();
         PropertyClassificationEntity classification = classificationEntity();
@@ -211,7 +211,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void update_quandoSemOrganizacao_naoDeveConsultarOrganizationRepository() {
+    void update_whenWithoutOrganization_doesNotQueryOrganizationRepository() {
         PropertyIO input = inputPropertyIOSemOrganizacao();
         Address address = address();
         PropertyClassificationEntity classification = classificationEntity();
@@ -233,7 +233,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void update_quandoPropriedadeNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenPropertyDoesNotExist_throwsResourceNotFoundException() {
         PropertyIO input = inputPropertyIO();
         when(propertyRepository.findById(PROPERTY_ID)).thenReturn(Optional.empty());
 
@@ -246,7 +246,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void update_quandoEnderecoNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenAddressDoesNotExist_throwsResourceNotFoundException() {
         PropertyIO input = inputPropertyIO();
         Property property = property(PROPERTY_ID, PROPERTY_NAME, null, null);
 
@@ -262,7 +262,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void update_quandoClassificacaoNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenClassificationDoesNotExist_throwsResourceNotFoundException() {
         PropertyIO input = inputPropertyIO();
         Property property = property(PROPERTY_ID, PROPERTY_NAME, null, null);
 
@@ -279,7 +279,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void update_quandoOrganizacaoNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenOrganizationDoesNotExist_throwsResourceNotFoundException() {
         PropertyIO input = inputPropertyIO();
         Property property = property(PROPERTY_ID, PROPERTY_NAME, null, null);
 
@@ -297,7 +297,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void delete_quandoPropriedadeExiste_deveExcluirPropriedade() {
+    void delete_whenPropertyExists_deletesProperty() {
         Property property = property(PROPERTY_ID, PROPERTY_NAME, null, null);
         when(propertyRepository.findById(PROPERTY_ID)).thenReturn(Optional.of(property));
 
@@ -307,7 +307,7 @@ class PropertyServiceTest {
     }
 
     @Test
-    void delete_quandoPropriedadeNaoExiste_deveLancarResourceNotFoundException() {
+    void delete_whenPropertyDoesNotExist_throwsResourceNotFoundException() {
         when(propertyRepository.findById(PROPERTY_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> propertyService.delete(PROPERTY_ID))
