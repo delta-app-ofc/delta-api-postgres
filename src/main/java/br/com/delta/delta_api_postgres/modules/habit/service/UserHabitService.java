@@ -21,7 +21,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -39,6 +41,7 @@ public class UserHabitService {
         access.requireUser(io.userId());
 
         validateTimes(io);
+        validateNoConflict(io.userId(), io.habitId(), io.startTime(), io.daysOfWeek(), null);
 
         Habit habit = habitRepository.findById(io.habitId())
                 .orElseThrow(() ->
@@ -112,15 +115,7 @@ public class UserHabitService {
 
         validateOwnership(userHabit, userId);
 
-        if (!userHabit.getHabit().getId().equals(io.habitId()) &&
-                userHabitRepository.existsByUserIdAndHabit_Id(
-                        userId,
-                        io.habitId()
-                )) {
-            throw new ResourceAlreadyExistsException(
-                    "O usuário já possui o novo hábito informado"
-            );
-        }
+        validateNoConflict(userId, io.habitId(), io.startTime(), io.daysOfWeek(), id);
 
         Habit habit = habitRepository.findById(io.habitId())
                 .orElseThrow(() ->
@@ -170,6 +165,34 @@ public class UserHabitService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Informe horário de início e fim juntos, com o fim depois do início"
+            );
+        }
+    }
+
+    // Espelha a trigger do banco: o mesmo hábito não pode repetir no mesmo dia e horário de início.
+    // Um mesmo hábito pode existir várias vezes, desde que dia ou horário sejam diferentes.
+    private void validateNoConflict(
+            Integer userId,
+            Integer habitId,
+            LocalTime startTime,
+            Collection<Integer> daysOfWeek,
+            Integer ignoredId
+    ) {
+
+        Set<Integer> requestedDayIds = new HashSet<>(daysOfWeek);
+
+        boolean conflict = userHabitRepository.findByUserId(userId)
+                .stream()
+                .filter(other -> !Objects.equals(other.getId(), ignoredId))
+                .filter(other -> other.getHabit().getId().equals(habitId))
+                .filter(other -> Objects.equals(other.getStartTime(), startTime))
+                .anyMatch(other -> other.getDays()
+                        .stream()
+                        .anyMatch(day -> requestedDayIds.contains(day.getDayOfWeek().getId())));
+
+        if (conflict) {
+            throw new ResourceAlreadyExistsException(
+                    "O usuário já possui esse hábito nesse dia e horário"
             );
         }
     }

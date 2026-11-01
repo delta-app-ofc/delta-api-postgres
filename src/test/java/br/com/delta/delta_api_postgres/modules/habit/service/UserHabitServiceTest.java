@@ -112,6 +112,55 @@ class UserHabitServiceTest {
     }
 
     @Test
+    void create_quandoJaExisteMesmoHabitoNoMesmoDiaEHorario_deveLancarResourceAlreadyExistsException() {
+        UserHabit existing = userHabit(2, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1, 3));
+        UserHabitIO input = inputUserHabitIO(HABIT_ID, List.of(3, 4));
+
+        when(userHabitRepository.findByUserId(USER_ID)).thenReturn(List.of(existing));
+
+        assertThatThrownBy(() -> userHabitService.create(input))
+                .isInstanceOf(ResourceAlreadyExistsException.class)
+                .hasMessage("O usuário já possui esse hábito nesse dia e horário");
+
+        verify(userHabitRepository, never()).save(any());
+        verifyNoInteractions(habitRepository, dayOfWeekRepository, userHabitMapper);
+    }
+
+    @Test
+    void create_quandoMesmoHabitoEmDiasDiferentes_deveSalvar() {
+        UserHabit existing = userHabit(2, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1));
+        UserHabitIO input = inputUserHabitIO(HABIT_ID, List.of(2));
+        UserHabitIO expected = savedUserHabitIO(HABIT_ID, List.of(2));
+
+        when(userHabitRepository.findByUserId(USER_ID)).thenReturn(List.of(existing));
+        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habit(HABIT_ID)));
+        when(dayOfWeekRepository.findById(2)).thenReturn(Optional.of(day(2, "Terça-feira")));
+        when(userHabitRepository.save(any(UserHabit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userHabitMapper.toIO(any(UserHabit.class))).thenReturn(expected);
+
+        assertThat(userHabitService.create(input)).isEqualTo(expected);
+        verify(userHabitRepository).save(any(UserHabit.class));
+    }
+
+    @Test
+    void create_quandoMesmoHabitoNoMesmoDiaEmHorarioDiferente_deveSalvar() {
+        UserHabit existing = userHabit(2, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1));
+        existing.setStartTime(START);
+        existing.setEndTime(END);
+        UserHabitIO input = inputUserHabitIO(HABIT_ID, List.of(1));
+        UserHabitIO expected = savedUserHabitIO(HABIT_ID, List.of(1));
+
+        when(userHabitRepository.findByUserId(USER_ID)).thenReturn(List.of(existing));
+        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habit(HABIT_ID)));
+        when(dayOfWeekRepository.findById(1)).thenReturn(Optional.of(day(1, "Segunda-feira")));
+        when(userHabitRepository.save(any(UserHabit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userHabitMapper.toIO(any(UserHabit.class))).thenReturn(expected);
+
+        assertThat(userHabitService.create(input)).isEqualTo(expected);
+        verify(userHabitRepository).save(any(UserHabit.class));
+    }
+
+    @Test
     void create_quandoFimNaoEDepoisDoInicio_deveLancarBadRequest() {
         UserHabitIO input = new UserHabitIO(null, USER_ID, HABIT_ID, null, null, null, FREQUENCY,
                 END, START, LITERS, List.of(1));
@@ -281,7 +330,6 @@ class UserHabitServiceTest {
         );
 
         when(userHabitRepository.findById(USER_HABIT_ID)).thenReturn(Optional.of(userHabit));
-        when(userHabitRepository.existsByUserIdAndHabit_Id(USER_ID, NEW_HABIT_ID)).thenReturn(false);
         when(habitRepository.findById(NEW_HABIT_ID)).thenReturn(Optional.of(newHabit));
         when(dayOfWeekRepository.findById(3)).thenReturn(Optional.of(day(3, "Quarta-feira")));
         when(userHabitMapper.toIO(userHabit)).thenReturn(expected);
@@ -326,18 +374,37 @@ class UserHabitServiceTest {
     }
 
     @Test
-    void update_quandoUsuarioJaPossuiNovoHabito_deveLancarResourceAlreadyExistsException() {
+    void update_quandoJaExisteMesmoHabitoNoMesmoDiaEHorario_deveLancarResourceAlreadyExistsException() {
         UserHabit userHabit = userHabit(USER_HABIT_ID, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1));
+        UserHabit other = userHabit(2, USER_ID, habit(NEW_HABIT_ID), FREQUENCY, List.of(1));
         UserHabitIO input = inputUserHabitIO(NEW_HABIT_ID, List.of(1));
 
         when(userHabitRepository.findById(USER_HABIT_ID)).thenReturn(Optional.of(userHabit));
-        when(userHabitRepository.existsByUserIdAndHabit_Id(USER_ID, NEW_HABIT_ID)).thenReturn(true);
+        when(userHabitRepository.findByUserId(USER_ID)).thenReturn(List.of(userHabit, other));
 
         assertThatThrownBy(() -> userHabitService.update(USER_ID, USER_HABIT_ID, input))
                 .isInstanceOf(ResourceAlreadyExistsException.class)
-                .hasMessage("O usuário já possui o novo hábito informado");
+                .hasMessage("O usuário já possui esse hábito nesse dia e horário");
 
         verifyNoInteractions(habitRepository, dayOfWeekRepository, userHabitMapper);
+    }
+
+    @Test
+    void update_quandoMesmoHabitoEmOutroHorario_naoDeveLancarConflito() {
+        UserHabit userHabit = userHabit(USER_HABIT_ID, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1));
+        UserHabit other = userHabit(2, USER_ID, habit(NEW_HABIT_ID), FREQUENCY, List.of(1));
+        other.setStartTime(START);
+        other.setEndTime(END);
+        UserHabitIO input = inputUserHabitIO(NEW_HABIT_ID, List.of(1));
+
+        when(userHabitRepository.findById(USER_HABIT_ID)).thenReturn(Optional.of(userHabit));
+        when(userHabitRepository.findByUserId(USER_ID)).thenReturn(List.of(userHabit, other));
+        when(habitRepository.findById(NEW_HABIT_ID)).thenReturn(Optional.of(habit(NEW_HABIT_ID)));
+        when(userHabitMapper.toIO(userHabit)).thenReturn(savedUserHabitIO(NEW_HABIT_ID, List.of(1)));
+
+        userHabitService.update(USER_ID, USER_HABIT_ID, input);
+
+        assertThat(userHabit.getHabit().getId()).isEqualTo(NEW_HABIT_ID);
     }
 
     @Test
@@ -346,7 +413,6 @@ class UserHabitServiceTest {
         UserHabitIO input = inputUserHabitIO(NEW_HABIT_ID, List.of(1));
 
         when(userHabitRepository.findById(USER_HABIT_ID)).thenReturn(Optional.of(userHabit));
-        when(userHabitRepository.existsByUserIdAndHabit_Id(USER_ID, NEW_HABIT_ID)).thenReturn(false);
         when(habitRepository.findById(NEW_HABIT_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userHabitService.update(USER_ID, USER_HABIT_ID, input))
@@ -362,7 +428,6 @@ class UserHabitServiceTest {
         UserHabitIO input = inputUserHabitIO(NEW_HABIT_ID, List.of(99));
 
         when(userHabitRepository.findById(USER_HABIT_ID)).thenReturn(Optional.of(userHabit));
-        when(userHabitRepository.existsByUserIdAndHabit_Id(USER_ID, NEW_HABIT_ID)).thenReturn(false);
         when(habitRepository.findById(NEW_HABIT_ID)).thenReturn(Optional.of(habit(NEW_HABIT_ID)));
         when(dayOfWeekRepository.findById(99)).thenReturn(Optional.empty());
 

@@ -9,9 +9,4 @@ public interface UserHabitRepository
         extends JpaRepository<UserHabit, Integer> {
 
     List<UserHabit> findByUserId(Integer userId);
-
-    boolean existsByUserIdAndHabit_Id(
-            Integer userId,
-            Integer habitId
-    );
 }
