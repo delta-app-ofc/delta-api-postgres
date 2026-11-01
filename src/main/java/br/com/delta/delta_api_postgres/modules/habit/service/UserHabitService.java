@@ -21,7 +21,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -41,7 +40,7 @@ public class UserHabitService {
         access.requireUser(io.userId());
 
         validateTimes(io);
-        validateNoConflict(io.userId(), io.habitId(), io.startTime(), io.daysOfWeek(), null);
+        validateNoConflict(io.userId(), io, null);
 
         Habit habit = habitRepository.findById(io.habitId())
                 .orElseThrow(() ->
@@ -115,7 +114,7 @@ public class UserHabitService {
 
         validateOwnership(userHabit, userId);
 
-        validateNoConflict(userId, io.habitId(), io.startTime(), io.daysOfWeek(), id);
+        validateNoConflict(userId, io, id);
 
         Habit habit = habitRepository.findById(io.habitId())
                 .orElseThrow(() ->
@@ -169,23 +168,21 @@ public class UserHabitService {
         }
     }
 
-    // Espelha a trigger do banco: o mesmo hábito não pode repetir no mesmo dia e horário de início.
-    // Um mesmo hábito pode existir várias vezes, desde que dia ou horário sejam diferentes.
+    // Mirrors the database trigger: the same habit cannot repeat on the same day and start time.
+    // The same habit may exist several times as long as the day or the start time differs.
     private void validateNoConflict(
             Integer userId,
-            Integer habitId,
-            LocalTime startTime,
-            Collection<Integer> daysOfWeek,
+            UserHabitIO io,
             Integer ignoredId
     ) {
 
-        Set<Integer> requestedDayIds = new HashSet<>(daysOfWeek);
+        Set<Integer> requestedDayIds = new HashSet<>(io.daysOfWeek());
 
         boolean conflict = userHabitRepository.findByUserId(userId)
                 .stream()
                 .filter(other -> !Objects.equals(other.getId(), ignoredId))
-                .filter(other -> other.getHabit().getId().equals(habitId))
-                .filter(other -> Objects.equals(other.getStartTime(), startTime))
+                .filter(other -> other.getHabit().getId().equals(io.habitId()))
+                .filter(other -> Objects.equals(other.getStartTime(), io.startTime()))
                 .anyMatch(other -> other.getDays()
                         .stream()
                         .anyMatch(day -> requestedDayIds.contains(day.getDayOfWeek().getId())));

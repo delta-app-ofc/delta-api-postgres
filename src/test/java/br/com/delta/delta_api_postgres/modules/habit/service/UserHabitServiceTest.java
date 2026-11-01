@@ -112,7 +112,7 @@ class UserHabitServiceTest {
     }
 
     @Test
-    void create_quandoJaExisteMesmoHabitoNoMesmoDiaEHorario_deveLancarResourceAlreadyExistsException() {
+    void create_whenSameHabitOnSameDayAndTime_throwsResourceAlreadyExistsException() {
         UserHabit existing = userHabit(2, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1, 3));
         UserHabitIO input = inputUserHabitIO(HABIT_ID, List.of(3, 4));
 
@@ -127,7 +127,7 @@ class UserHabitServiceTest {
     }
 
     @Test
-    void create_quandoMesmoHabitoEmDiasDiferentes_deveSalvar() {
+    void create_whenSameHabitOnDifferentDays_saves() {
         UserHabit existing = userHabit(2, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1));
         UserHabitIO input = inputUserHabitIO(HABIT_ID, List.of(2));
         UserHabitIO expected = savedUserHabitIO(HABIT_ID, List.of(2));
@@ -143,7 +143,7 @@ class UserHabitServiceTest {
     }
 
     @Test
-    void create_quandoMesmoHabitoNoMesmoDiaEmHorarioDiferente_deveSalvar() {
+    void create_whenSameHabitOnSameDayAtDifferentTime_saves() {
         UserHabit existing = userHabit(2, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1));
         existing.setStartTime(START);
         existing.setEndTime(END);
@@ -374,7 +374,7 @@ class UserHabitServiceTest {
     }
 
     @Test
-    void update_quandoJaExisteMesmoHabitoNoMesmoDiaEHorario_deveLancarResourceAlreadyExistsException() {
+    void update_whenSameHabitOnSameDayAndTime_throwsResourceAlreadyExistsException() {
         UserHabit userHabit = userHabit(USER_HABIT_ID, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1));
         UserHabit other = userHabit(2, USER_ID, habit(NEW_HABIT_ID), FREQUENCY, List.of(1));
         UserHabitIO input = inputUserHabitIO(NEW_HABIT_ID, List.of(1));
@@ -390,7 +390,7 @@ class UserHabitServiceTest {
     }
 
     @Test
-    void update_quandoMesmoHabitoEmOutroHorario_naoDeveLancarConflito() {
+    void update_whenSameHabitAtDifferentTime_doesNotThrowConflict() {
         UserHabit userHabit = userHabit(USER_HABIT_ID, USER_ID, habit(HABIT_ID), FREQUENCY, List.of(1));
         UserHabit other = userHabit(2, USER_ID, habit(NEW_HABIT_ID), FREQUENCY, List.of(1));
         other.setStartTime(START);
