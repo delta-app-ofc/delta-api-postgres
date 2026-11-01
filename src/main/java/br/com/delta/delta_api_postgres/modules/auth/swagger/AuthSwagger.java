@@ -2,6 +2,7 @@ package br.com.delta.delta_api_postgres.modules.auth.swagger;
 
 import br.com.delta.delta_api_postgres.modules.auth.dto.CompleteRegistrationRequest;
 import br.com.delta.delta_api_postgres.modules.auth.dto.UpdateProfileRequest;
+import br.com.delta.delta_api_postgres.modules.auth.dto.EmailLookupRequest;
 import br.com.delta.delta_api_postgres.modules.auth.service.RegistrationCompletionService;
 import br.com.delta.delta_api_postgres.modules.auth.service.AuthService;
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.LoginRequest;
@@ -21,6 +22,16 @@ import org.springframework.http.ResponseEntity;
         description = "Operações para autenticação e identificação do usuário"
 )
 public interface AuthSwagger {
+
+    @Operation(summary = "Consultar classificação pelo e-mail", security = {},
+            description = "Consulta pública. Retorna somente classificationGroup: RESIDENCIAL ou COMERCIAL, conforme os imóveis vinculados ao usuário ativo.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Classificação encontrada"),
+            @ApiResponse(responseCode = "400", description = "E-mail ausente ou inválido"),
+            @ApiResponse(responseCode = "404", description = "Usuário inexistente, inativo ou sem imóvel vinculado"),
+            @ApiResponse(responseCode = "409", description = "Usuário possui imóveis dos dois grupos")
+    })
+    ResponseEntity<AuthService.ClassificationResponse> classification(EmailLookupRequest request);
 
     @Operation(summary = "Cadastrar usuário", security = {})
     @ApiResponses({

@@ -101,6 +101,64 @@ class UserDataIntegrationTests extends AuthTestConfig {
         bearer = "Bearer " + tokens.accessToken(alice, clock.instant());
     }
 
+    @Test void publicClassificationReturnsOnlyResidentialGroupAndNormalizesEmail() throws Exception {
+        mvc.perform(get("/delta/auth/classification").param("email", " " + alice.getEmail().toUpperCase(Locale.ROOT) + " "))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().json("{\"classificationGroup\":\"RESIDENCIAL\"}", true));
+    }
+
+    @Test void publicClassificationReturnsCommercialGroup() throws Exception {
+        var commercial = new PropertyClassificationEntity(null, PropertyClassification.COMERCIAL_NORMAL_INDUSTRIAL,
+                PropertyClassificationGroup.COMERCIAL);
+        em.persist(commercial);
+        aliceProperty.setClassification(commercial);
+        em.flush();
+        mvc.perform(get("/delta/auth/classification").param("email", alice.getEmail()))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"classificationGroup\":\"COMERCIAL\"}", true));
+    }
+
+    @Test void publicClassificationAcceptsMultiplePropertiesInTheSameGroup() throws Exception {
+        link(alice, bobProperty);
+        em.flush();
+        mvc.perform(get("/delta/auth/classification").param("email", alice.getEmail()))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"classificationGroup\":\"RESIDENCIAL\"}", true));
+    }
+
+    @Test void publicClassificationRejectsMixedGroups() throws Exception {
+        var commercial = new PropertyClassificationEntity(null, PropertyClassification.COMERCIAL_NORMAL_INDUSTRIAL,
+                PropertyClassificationGroup.COMERCIAL);
+        em.persist(commercial);
+        bobProperty.setClassification(commercial);
+        link(alice, bobProperty);
+        em.flush();
+        mvc.perform(get("/delta/auth/classification").param("email", alice.getEmail()))
+                .andExpect(status().isConflict());
+    }
+
+    @Test void publicClassificationRejectsUnknownInactiveAndUnlinkedUsers() throws Exception {
+        mvc.perform(get("/delta/auth/classification").param("email", "missing@example.com"))
+                .andExpect(status().isNotFound());
+        alice.setEnabled(false);
+        em.flush();
+        mvc.perform(get("/delta/auth/classification").param("email", alice.getEmail()))
+                .andExpect(status().isNotFound());
+        em.remove(bobLink);
+        em.flush();
+        mvc.perform(get("/delta/auth/classification").param("email", bob.getEmail()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test void publicClassificationRequiresAValidEmail() throws Exception {
+        mvc.perform(get("/delta/auth/classification")).andExpect(status().isBadRequest());
+        for (String email : List.of("", "   ", "invalid", "a".repeat(250) + "@example.com")) {
+            mvc.perform(get("/delta/auth/classification").param("email", email))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
     @Test void profileIncludesOptionalFieldsWithoutSecrets() throws Exception {
         mvc.perform(get("/delta/auth/me").header("Authorization", bearer))
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
