@@ -128,9 +128,11 @@ nbdist/
 .LSOverride
 Thumbs.db
 desktop.ini
+.scannerwork/
+reports/
 
 # ============================================
 # Arquivos locais do projeto
 # ============================================
 .local/
-TASK*.md
+TASK*.md    

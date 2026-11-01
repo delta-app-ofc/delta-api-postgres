@@ -17,6 +17,15 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler({
+            org.springframework.transaction.CannotCreateTransactionException.class,
+            org.springframework.dao.DataAccessResourceFailureException.class
+    })
+    public ResponseEntity<ErrorResponse> handleDatabaseUnavailable(Exception exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE,
+                "Banco de dados indisponível. Tente novamente mais tarde.", request);
+    }
+
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthentication(Exception exception, HttpServletRequest request) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciais inválidas ou sessão expirada.", request);

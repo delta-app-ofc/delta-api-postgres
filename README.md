@@ -38,6 +38,28 @@ Reenvios com os mesmos dados persistidos retornam os registros existentes. Um bl
 
 A criação do imóvel utiliza a procedure existente `sp_register_property`; ela deve estar instalada no PostgreSQL e participar da transação, sem commit interno. A orquestração garante a associação com o usuário caso a procedure ainda não a crie. Não há chamadas HTTP internas para os controllers.
 
+## Banco indisponível por cota do Neon
+
+O erro PostgreSQL `53000` com a mensagem `Your account or project has exceeded the quota` significa que o provedor recusou a conexão por uma cota da conta ou do projeto. O Hikari tenta conectar e o Hibernate não consegue abrir a transação. A mensagem não identifica qual cota foi excedida.
+
+No [painel do Neon](https://console.neon.tech), verifique o Usage do projeto e Billing da organização para identificar o limite e o período de consumo. A recuperação depende da cota: disponibilizar capacidade no plano, aguardar a renovação do período quando aplicável ou contatar o suporte em caso de divergência. Reiniciar a API ou alterar a senha não remove o bloqueio. Não é necessário recriar ou apagar tabelas.
+
+A API responde `503` com `Banco de dados indisponível. Tente novamente mais tarde.` para falhas de abertura da transação ou indisponibilidade de conexão que chegam aos controllers. O endpoint `/health` também retorna `503` quando as dependências estão indisponíveis. Isso informa a falha ao cliente, mas não libera a cota do provedor.
+
+O pool mantém zero conexões mínimas ociosas, encerra conexões ociosas após aproximadamente um minuto, desabilita keepalive e limita a cinco conexões por instância (`DB_POOL_MAX_SIZE` ajustável). Esses ajustes reduzem conexões e consultas de manutenção desnecessárias; não corrigem uma cota já esgotada. Monitores que consultam `/health` com frequência acessam PostgreSQL e Redis e podem manter o compute ativo. Revise a frequência desses monitores no ambiente de hospedagem. Reinicie a aplicação após atualizar a configuração.
+
+## Consulta pública de classificação por e-mail
+
+`GET /delta/auth/classification?email=davi%40example.com` dispensa autenticação e retorna somente:
+
+```json
+{ "classificationGroup": "RESIDENCIAL" }
+```
+
+O valor pode ser `RESIDENCIAL` ou `COMERCIAL` e vem do grupo de classificação dos imóveis vinculados ao usuário ativo, não do tipo CASA/PRÉDIO. O e-mail é obrigatório, validado e normalizado para minúsculas sem espaços externos. A resposta usa `Cache-Control: no-store`.
+
+Retorna `400` para e-mail ausente/inválido, `404` para usuário inexistente, inativo ou sem imóvel vinculado e `409` quando há imóveis dos dois grupos. Vários imóveis do mesmo grupo retornam uma única classificação.
+
 ## Consulta, atualização e exclusão do usuário
 
 Todas as rotas abaixo exigem `Authorization: Bearer <accessToken>`. O titular do perfil vem do token; IDs de usuário recebidos nas rotas legadas ou no corpo devem corresponder ao mesmo usuário.
