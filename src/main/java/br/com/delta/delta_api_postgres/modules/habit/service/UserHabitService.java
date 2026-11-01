@@ -13,6 +13,7 @@ import br.com.delta.delta_api_postgres.modules.habit.repository.HabitRepository;
 import br.com.delta.delta_api_postgres.modules.habit.repository.UserHabitRepository;
 import lombok.RequiredArgsConstructor;
 import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +61,7 @@ public class UserHabitService {
 
         addDays(userHabit, io.daysOfWeek());
 
-        UserHabit saved = userHabitRepository.save(userHabit);
+        UserHabit saved = saveAndFlushChecked(userHabit);
 
         return userHabitMapper.toIO(saved);
     }
@@ -131,6 +132,8 @@ public class UserHabitService {
 
         syncDays(userHabit, io.daysOfWeek());
 
+        saveAndFlushChecked(userHabit);
+
         return userHabitMapper.toIO(userHabit);
     }
 
@@ -188,6 +191,20 @@ public class UserHabitService {
                         .anyMatch(day -> requestedDayIds.contains(day.getDayOfWeek().getId())));
 
         if (conflict) {
+            throw new ResourceAlreadyExistsException(
+                    "O usuário já possui esse hábito nesse dia e horário"
+            );
+        }
+    }
+
+    // The pre-check above is not atomic: two concurrent requests can both pass it.
+    // The database trigger is the source of truth, so flush now to surface its
+    // violation here and report it as a conflict instead of failing at commit.
+    private UserHabit saveAndFlushChecked(UserHabit userHabit) {
+
+        try {
+            return userHabitRepository.saveAndFlush(userHabit);
+        } catch (DataIntegrityViolationException exception) {
             throw new ResourceAlreadyExistsException(
                     "O usuário já possui esse hábito nesse dia e horário"
             );

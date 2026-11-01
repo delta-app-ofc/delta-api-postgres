@@ -20,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -79,7 +80,7 @@ class UserHabitServiceTest {
         when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habit));
         when(dayOfWeekRepository.findById(1)).thenReturn(Optional.of(monday));
         when(dayOfWeekRepository.findById(2)).thenReturn(Optional.of(tuesday));
-        when(userHabitRepository.save(any(UserHabit.class))).thenAnswer(invocation -> {
+        when(userHabitRepository.saveAndFlush(any(UserHabit.class))).thenAnswer(invocation -> {
             UserHabit saved = invocation.getArgument(0);
             saved.setId(USER_HABIT_ID);
             return saved;
@@ -93,7 +94,7 @@ class UserHabitServiceTest {
         assertThat(result).isEqualTo(expected);
 
         ArgumentCaptor<UserHabit> captor = ArgumentCaptor.forClass(UserHabit.class);
-        verify(userHabitRepository).save(captor.capture());
+        verify(userHabitRepository).saveAndFlush(captor.capture());
 
         UserHabit saved = captor.getValue();
         assertThat(saved.getUserId()).isEqualTo(USER_ID);
@@ -122,7 +123,7 @@ class UserHabitServiceTest {
                 .isInstanceOf(ResourceAlreadyExistsException.class)
                 .hasMessage("O usuário já possui esse hábito nesse dia e horário");
 
-        verify(userHabitRepository, never()).save(any());
+        verify(userHabitRepository, never()).saveAndFlush(any());
         verifyNoInteractions(habitRepository, dayOfWeekRepository, userHabitMapper);
     }
 
@@ -135,11 +136,25 @@ class UserHabitServiceTest {
         when(userHabitRepository.findByUserId(USER_ID)).thenReturn(List.of(existing));
         when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habit(HABIT_ID)));
         when(dayOfWeekRepository.findById(2)).thenReturn(Optional.of(day(2, "Terça-feira")));
-        when(userHabitRepository.save(any(UserHabit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userHabitRepository.saveAndFlush(any(UserHabit.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(userHabitMapper.toIO(any(UserHabit.class))).thenReturn(expected);
 
         assertThat(userHabitService.create(input)).isEqualTo(expected);
-        verify(userHabitRepository).save(any(UserHabit.class));
+        verify(userHabitRepository).saveAndFlush(any(UserHabit.class));
+    }
+
+    @Test
+    void create_whenDatabaseRejectsConcurrentDuplicate_throwsConflict() {
+        UserHabitIO input = inputUserHabitIO(HABIT_ID, List.of(2));
+
+        when(userHabitRepository.findByUserId(USER_ID)).thenReturn(List.of());
+        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habit(HABIT_ID)));
+        when(dayOfWeekRepository.findById(2)).thenReturn(Optional.of(day(2, "Terça-feira")));
+        when(userHabitRepository.saveAndFlush(any(UserHabit.class)))
+                .thenThrow(new DataIntegrityViolationException("trigger"));
+
+        assertThatThrownBy(() -> userHabitService.create(input))
+                .isInstanceOf(ResourceAlreadyExistsException.class);
     }
 
     @Test
@@ -153,11 +168,11 @@ class UserHabitServiceTest {
         when(userHabitRepository.findByUserId(USER_ID)).thenReturn(List.of(existing));
         when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habit(HABIT_ID)));
         when(dayOfWeekRepository.findById(1)).thenReturn(Optional.of(day(1, "Segunda-feira")));
-        when(userHabitRepository.save(any(UserHabit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userHabitRepository.saveAndFlush(any(UserHabit.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(userHabitMapper.toIO(any(UserHabit.class))).thenReturn(expected);
 
         assertThat(userHabitService.create(input)).isEqualTo(expected);
-        verify(userHabitRepository).save(any(UserHabit.class));
+        verify(userHabitRepository).saveAndFlush(any(UserHabit.class));
     }
 
     @Test
@@ -205,7 +220,7 @@ class UserHabitServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Hábito não encontrado");
 
-        verify(userHabitRepository, never()).save(any());
+        verify(userHabitRepository, never()).saveAndFlush(any());
         verifyNoInteractions(dayOfWeekRepository, userHabitMapper);
     }
 
@@ -221,7 +236,7 @@ class UserHabitServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Dia da semana não encontrado");
 
-        verify(userHabitRepository, never()).save(any());
+        verify(userHabitRepository, never()).saveAndFlush(any());
         verifyNoInteractions(userHabitMapper);
     }
 
@@ -345,7 +360,7 @@ class UserHabitServiceTest {
         assertThat(dayIds(userHabit)).containsExactly(2, 3);
         assertThat(userHabit.getDays().get(1).getUserHabit()).isSameAs(userHabit);
         verify(dayOfWeekRepository).findById(3);
-        verify(userHabitRepository, never()).save(any());
+        verify(userHabitRepository).saveAndFlush(userHabit);
     }
 
     @Test
