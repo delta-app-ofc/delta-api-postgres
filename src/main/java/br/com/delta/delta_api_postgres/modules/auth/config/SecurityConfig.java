@@ -19,6 +19,7 @@ import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.*;
@@ -106,9 +107,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/delta/auth/create-account", "/delta/auth/login", "/delta/auth/refresh").permitAll()
+                        .requestMatchers("/delta/internal/**").hasRole(ServiceKeyFilter.ROLE)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
-                .addFilterBefore(new AuthRateLimitFilter(properties, errors, clock), CsrfFilter.class);
+                .addFilterBefore(new AuthRateLimitFilter(properties, errors, clock), CsrfFilter.class)
+                .addFilterBefore(new ServiceKeyFilter(properties, errors), BearerTokenAuthenticationFilter.class);
         return http.build();
     }
 
