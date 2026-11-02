@@ -34,6 +34,13 @@ public class DeviceOwnerService {
     private final PropertyShiftRepository shiftRepository;
     private final PropertyOperationDayRepository operationDayRepository;
 
+    private static String cohortKey(br.com.delta.delta_api_postgres.modules.property.entity.Property property) {
+        if (property.getType() == null || property.getClassification().getName() == null
+                || property.getAddress() == null || property.getAddress().getRegion() == null) return null;
+        return property.getClassification().getName().name() + "|" + property.getType().name() + "|"
+                + property.getAddress().getRegion().getId();
+    }
+
     public DeviceOwnerIO findByDeviceId(String deviceId) {
         var device = deviceRepository.findByDeviceId(deviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dispositivo não encontrado."));
@@ -47,6 +54,6 @@ public class DeviceOwnerService {
                 .map(name -> DAYS.get(name.trim().toUpperCase(Locale.ROOT).replaceFirst("-FEIRA$", "")))
                 .filter(java.util.Objects::nonNull).distinct().sorted().toList();
         return new DeviceOwnerIO(device.getDeviceId(), property.getId(),
-                property.getClassification().getGroupName(), userIds, device.isActive(), shifts, days);
+                property.getClassification().getGroupName(), userIds, device.isActive(), shifts, days, cohortKey(property));
     }
 }

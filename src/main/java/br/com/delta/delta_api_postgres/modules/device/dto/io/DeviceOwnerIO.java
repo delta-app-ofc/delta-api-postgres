@@ -18,7 +18,8 @@ public record DeviceOwnerIO(
         @Schema(description = "Turnos de funcionamento (imóvel comercial); vazio se não cadastrados.")
         List<ShiftIO> shifts,
         @Schema(description = "Dias da semana em que o imóvel funciona (MONDAY..SUNDAY); vazio se não cadastrados.")
-        List<String> operationDays
+        List<String> operationDays,
+        @Schema(description = "Classificação, tipo de imóvel e região para coortes comparáveis.") String cohortKey
 ){
     public record ShiftIO(
             @Schema(description = "Início do turno (HH:mm ou HH:mm:ss), no horário local do imóvel.", example = "08:00")
