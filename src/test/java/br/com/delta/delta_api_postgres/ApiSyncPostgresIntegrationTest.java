@@ -90,6 +90,18 @@ class ApiSyncPostgresIntegrationTest extends UserDataIntegrationTests {
             }
             assertThat(json.readTree(evidence).path("content").size()).isEqualTo(7);
             assertThat(evidence).contains("completed","true");
+            var alerts=http.send(HttpRequest.newBuilder(URI.create(base+"/api/alerts?size=100"))
+                .header("Authorization",bearer).GET().build(),HttpResponse.BodyHandlers.ofString());
+            assertThat(alerts.statusCode()).as(alerts.body()).isEqualTo(200);
+            int continuousAlerts=0;
+            for(var alert:json.readTree(alerts.body()).path("content")) {
+                if(device.equals(alert.path("device_id").asText()) && "continuous_flow".equals(alert.path("rule").asText())) {
+                    continuousAlerts++;
+                    assertThat(alert.path("source").asText()).isEqualTo("detector");
+                    assertThat(alert.path("property_id").asInt()).isEqualTo(aliceProperty.getId());
+                }
+            }
+            assertThat(continuousAlerts).isEqualTo(1);
             String bobToken="Bearer "+tokens.accessToken(bob,clock.instant());
             var denied=http.send(HttpRequest.newBuilder(URI.create(base+"/api/detection/devices/"+device+"/evidence?start="+end.minusSeconds(3600)+"&end="+end))
                 .header("Authorization",bobToken).GET().build(),HttpResponse.BodyHandlers.ofString());
