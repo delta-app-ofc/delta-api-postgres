@@ -1,0 +1,40 @@
+name: Continuous Delivery
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+concurrency:
+  group: render-deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verificar configuração do Render
+        id: hook
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [[ -z "$RENDER_DEPLOY_HOOK" ]]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Configure o secret RENDER_DEPLOY_HOOK para habilitar o deploy no Render."
+            echo "Deploy não disparado: o secret RENDER_DEPLOY_HOOK ainda não foi configurado." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Render Deploy
+        if: steps.hook.outputs.configured == 'true'
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 60 \
+            --request POST --output /dev/null "$RENDER_DEPLOY_HOOK"
+          echo "Solicitação de deploy enviada ao Render." >> "$GITHUB_STEP_SUMMARY"
