@@ -1,6 +1,8 @@
 package br.com.delta.delta_api_postgres.modules.auth.service;
 
 import br.com.delta.delta_api_postgres.common.exception.ResourceAlreadyExistsException;
+import br.com.delta.delta_api_postgres.common.exception.ResourceNotFoundException;
+import br.com.delta.delta_api_postgres.modules.property.enums.PropertyClassificationGroup;
 import br.com.delta.delta_api_postgres.modules.auth.entity.AuthUser;
 import br.com.delta.delta_api_postgres.modules.auth.dto.UpdateProfileRequest;
 import br.com.delta.delta_api_postgres.modules.auth.repository.AuthUserRepository;
@@ -25,6 +27,17 @@ public class AuthService {
     public record AccessToken(String value) {}
     public record TokenPair(AccessToken accessToken, RefreshTokenService.CreatedRefreshToken refreshToken) {}
     public record UserInfo(Integer id, String name, String email, String phone, LocalDate birthDate) {}
+    public record ClassificationResponse(PropertyClassificationGroup classificationGroup) {}
+
+    @Transactional(readOnly = true)
+    public ClassificationResponse classificationByEmail(String email) {
+        var groups = users.findClassificationGroupsByEmail(email.strip().toLowerCase(Locale.ROOT));
+        if (groups.isEmpty())
+            throw new ResourceNotFoundException("Classificação não encontrada para este e-mail.");
+        if (groups.size() > 1)
+            throw new ResourceAlreadyExistsException("Usuário possui imóveis residenciais e comerciais.");
+        return new ClassificationResponse(groups.get(0));
+    }
 
     @Transactional
     public TokenPair register(String name, String email, String password, String phone, LocalDate birthDate) {

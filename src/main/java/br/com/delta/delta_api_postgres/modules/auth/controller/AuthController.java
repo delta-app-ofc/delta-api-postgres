@@ -2,6 +2,7 @@ package br.com.delta.delta_api_postgres.modules.auth.controller;
 
 import br.com.delta.delta_api_postgres.modules.auth.dto.CompleteRegistrationRequest;
 import br.com.delta.delta_api_postgres.modules.auth.dto.UpdateProfileRequest;
+import br.com.delta.delta_api_postgres.modules.auth.dto.EmailLookupRequest;
 import br.com.delta.delta_api_postgres.modules.auth.service.RegistrationCompletionService;
 import br.com.delta.delta_api_postgres.modules.auth.security.CurrentUser;
 import br.com.delta.delta_api_postgres.modules.auth.service.AuthService;
@@ -10,6 +11,7 @@ import br.com.delta.delta_api_postgres.modules.auth.swagger.AuthSwagger;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
@@ -33,6 +35,14 @@ public class AuthController implements AuthSwagger {
     public record TokenResponse(String accessToken, String tokenType, long expiresIn,
                                 String refreshToken, long refreshExpiresIn) {}
     public record AccessTokenResponse(String accessToken, String tokenType, long expiresIn) {}
+
+    @Override
+    @GetMapping("/classification")
+    public ResponseEntity<AuthService.ClassificationResponse> classification(
+            @Valid @ModelAttribute @ParameterObject EmailLookupRequest request) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(auth.classificationByEmail(request.email()));
+    }
 
     @Override
     @PostMapping("/create-account")
