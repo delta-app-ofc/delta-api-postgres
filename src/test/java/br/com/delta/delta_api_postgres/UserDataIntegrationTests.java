@@ -239,6 +239,39 @@ class UserDataIntegrationTests extends AuthTestConfig {
         assertThat(em.find(Property.class, aliceProperty.getId())).isNotNull();
     }
 
+    @Test void internalOwnerLookupReturnsPropertyUsersAndClassificationWithTheServiceKey() throws Exception {
+        mvc.perform(get("/delta/internal/device/" + aliceDevice.getDeviceId() + "/owner")
+                        .header("X-Service-Key", "test-service-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("deviceId").value(aliceDevice.getDeviceId()))
+                .andExpect(jsonPath("propertyId").value(aliceProperty.getId()))
+                .andExpect(jsonPath("classificationGroup").value("RESIDENCIAL"))
+                .andExpect(jsonPath("userIds[0]").value(alice.getId()))
+                .andExpect(jsonPath("userIds.length()").value(1));
+    }
+
+    @Test void internalOwnerLookupReturnsNotFoundForAnUnknownDevice() throws Exception {
+        mvc.perform(get("/delta/internal/device/NAO-EXISTE/owner").header("X-Service-Key", "test-service-key"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test void internalOwnerLookupRejectsMissingOrWrongServiceKey() throws Exception {
+        String path = "/delta/internal/device/" + aliceDevice.getDeviceId() + "/owner";
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mvc.perform(get(path).header("X-Service-Key", "errada")).andExpect(status().isUnauthorized());
+    }
+
+    @Test void internalOwnerLookupIsNotOpenToAnAuthenticatedUserToken() throws Exception {
+        mvc.perform(get("/delta/internal/device/" + aliceDevice.getDeviceId() + "/owner")
+                        .header("Authorization", bearer))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test void theServiceKeyDoesNotOpenUserEndpoints() throws Exception {
+        mvc.perform(get("/delta/device").header("X-Service-Key", "test-service-key"))
+                .andExpect(status().isUnauthorized());
+    }
+
     @Test void canDeleteOwnDeviceBillAndHabit() throws Exception {
         for (String path : List.of("/delta/device/" + aliceDevice.getId(), "/delta/last-water-bills/" + aliceBill.getId(),
                 "/delta/habits/" + alice.getId() + "/" + aliceHabit.getId())) {
