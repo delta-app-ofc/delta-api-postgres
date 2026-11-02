@@ -44,7 +44,7 @@ public class DeviceOwnerService {
                 .stream().map(shift -> new DeviceOwnerIO.ShiftIO(shift.getStartTime().toString(),
                         shift.getEndTime().toString())).toList();
         List<String> days = operationDayRepository.findDayNamesByPropertyId(property.getId()).stream()
-                .map(name -> DAYS.get(name.trim().toUpperCase(Locale.ROOT)))
+                .map(name -> DAYS.get(name.trim().toUpperCase(Locale.ROOT).replaceFirst("-FEIRA$", "")))
                 .filter(java.util.Objects::nonNull).distinct().sorted().toList();
         return new DeviceOwnerIO(device.getDeviceId(), property.getId(),
                 property.getClassification().getGroupName(), userIds, device.isActive(), shifts, days);
