@@ -14,5 +14,17 @@ public record DeviceOwnerIO(
         @Schema(description = "Usuários vinculados ao imóvel; pode haver mais de um.")
         List<Integer> userIds,
         @Schema(description = "Se o dispositivo está ativo.")
-        Boolean isActive
-){}
+        Boolean isActive,
+        @Schema(description = "Turnos de funcionamento (imóvel comercial); vazio se não cadastrados.")
+        List<ShiftIO> shifts,
+        @Schema(description = "Dias da semana em que o imóvel funciona (MONDAY..SUNDAY); vazio se não cadastrados.")
+        List<String> operationDays
+){
+    public record ShiftIO(
+            @Schema(description = "Início do turno (HH:mm ou HH:mm:ss), no horário local do imóvel.", example = "08:00")
+            String startTime,
+            @Schema(description = "Fim do turno (exclusivo).", example = "18:00")
+            String endTime
+    ) {
+    }
+}
