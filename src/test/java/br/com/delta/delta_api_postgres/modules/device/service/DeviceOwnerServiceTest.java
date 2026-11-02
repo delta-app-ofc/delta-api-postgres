@@ -102,6 +102,21 @@ class DeviceOwnerServiceTest {
     }
 
     @Test
+    void acceptsTheFeiraSpellingOfTheDayNames() {
+        when(deviceRepository.findByDeviceId(DEVICE_CODE))
+                .thenReturn(Optional.of(device(PropertyClassificationGroup.COMERCIAL, true)));
+        when(userPropertyRepository.findByProperty_Id(PROPERTY_ID)).thenReturn(List.of());
+        when(operationDayRepository.findDayNamesByPropertyId(PROPERTY_ID))
+                .thenReturn(List.of("Segunda-feira", "Terça-feira", "quarta-feira", "Quinta-Feira", "Sexta-feira",
+                        "Sábado", "Domingo"));
+
+        var owner = service.findByDeviceId(DEVICE_CODE);
+
+        assertThat(owner.operationDays()).containsExactly("FRIDAY", "MONDAY", "SATURDAY", "SUNDAY", "THURSDAY",
+                "TUESDAY", "WEDNESDAY");
+    }
+
+    @Test
     void failsWithNotFoundWhenTheDeviceDoesNotExist() {
         when(deviceRepository.findByDeviceId("DESCONHECIDO")).thenReturn(Optional.empty());
 

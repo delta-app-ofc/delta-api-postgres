@@ -253,8 +253,8 @@ class UserDataIntegrationTests extends AuthTestConfig {
     }
 
     @Test void internalOwnerLookupReturnsTheShiftsAndOperationDaysOfTheProperty() throws Exception {
-        var monday = new DayOfWeek(null, "SEGUNDA");
-        em.persist(monday);
+        // Usa o cadastro compartilhado "Segunda-feira", não um nome abreviado exclusivo deste teste.
+        var monday = day;
         var shift = new PropertyShift();
         shift.setPropertyId(aliceProperty.getId());
         shift.setStartTime(LocalTime.of(8, 0));
