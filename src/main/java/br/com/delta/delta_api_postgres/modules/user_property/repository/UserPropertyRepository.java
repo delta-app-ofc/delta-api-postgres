@@ -11,6 +11,8 @@ public interface UserPropertyRepository
 
     List<UserProperty> findByUserId(Integer userId);
 
+    List<UserProperty> findByProperty_Id(Integer propertyId);
+
     boolean existsByUserIdAndProperty_Id(
             Integer userId,
             Integer propertyId
