@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   test:
+    name: ci-tecnico
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -23,7 +24,7 @@ jobs:
         run: docker compose -f docker-compose.test.yml run --build --rm tests
       - name: Limpar containers
         if: always()
-        run: docker compose -f docker-compose.test.yml down
+        run: docker compose -f docker-compose.test.yml down || echo "::warning::Falha na limpeza opcional dos containers de teste."
 
   report-ci:
     name: Reportar resultado do CI na PR
