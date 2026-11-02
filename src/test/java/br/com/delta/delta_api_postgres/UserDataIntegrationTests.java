@@ -346,7 +346,7 @@ class UserDataIntegrationTests extends AuthTestConfig {
     }
 
     private Address address(Region region, String city) {
-        var a = new Address(null, region, "01001000", city, "SP", null, null);
+        var a = new Address(null, region, "01001000", city, "SP", new java.math.BigDecimal("-23.550520"), new java.math.BigDecimal("-46.633308"));
         em.persist(a); return a;
     }
 
@@ -383,7 +383,7 @@ class UserDataIntegrationTests extends AuthTestConfig {
     }
 
     private String addressBody() throws Exception {
-        return json.writeValueAsString(Map.of("regionId", aliceAddress.getRegion().getId(), "cep", "11010000", "city", "Santos", "state", "SP"));
+        return json.writeValueAsString(Map.of("regionId", aliceAddress.getRegion().getId(), "cep", "11010000", "city", "Santos", "state", "SP", "latitude", -23.960800, "longitude", -46.333600));
     }
 
     private String propertyBody(Integer addressId) throws Exception {

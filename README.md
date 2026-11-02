@@ -18,7 +18,7 @@ Spring Boot REST API responsável por gerenciar dados relacionais na plataforma 
 
 ```json
 {
-  "address": { "cep": "01001000", "city": "São Paulo", "state": "SP" },
+  "address": { "cep": "01001000", "city": "São Paulo", "state": "SP", "latitude": -23.550520, "longitude": -46.633308 },
   "property": {
     "name": "Casa principal",
     "type": "CASA",
@@ -67,7 +67,7 @@ Nome, e-mail e nascimento são obrigatórios no PUT; `phone: null` (ou vazio) li
 
 DELETE do perfil é **exclusão lógica**: conserva dados pessoais, hábitos, contas, vínculos e recursos compartilhados. Não equivale a apagar ou anonimizar dados. Login, access tokens e refresh tokens anteriores deixam de ser aceitos porque a autenticação verifica a conta ativa no PostgreSQL. As chaves de refresh no Redis expiram pelo TTL existente; a desativação não depende de limpeza do Redis e não há reativação pública da conta. O e-mail continua reservado.
 
-Endereços pertencem aos imóveis, por meio dos vínculos de `tb_user_property`, e não diretamente ao usuário. O endereço atual suporta `regionId`, `cep`, `city`, `state`, `latitude` e `longitude`. Rua, número, bairro e complemento exigiriam alteração do schema e não são aceitos como campos persistidos. O POST de endereço legado cria um registro sem titularidade comprovável, pois a tabela não possui vínculo direto de proprietário. Esses registros não podem ser consultados nem adotados por simples conhecimento do ID. O CRUD público de imóvel só reutiliza endereços já vinculados exclusivamente ao usuário. Para o primeiro endereço/imóvel, use `complete-registration`, que cria ambos e garante o vínculo na mesma transação. O fluxo legado POST de endereço seguido de POST de imóvel com ID solto não é suportado pelas regras de titularidade; permitir esse fluxo exige persistir a autoria do endereço no schema.
+Endereços pertencem aos imóveis, por meio dos vínculos de `tb_user_property`, e não diretamente ao usuário. O endereço atual suporta `regionId`, `cep`, `city`, `state`, `latitude` e `longitude` (as duas últimas são obrigatórias). Rua, número, bairro e complemento exigiriam alteração do schema e não são aceitos como campos persistidos. O POST de endereço legado cria um registro sem titularidade comprovável, pois a tabela não possui vínculo direto de proprietário. Esses registros não podem ser consultados nem adotados por simples conhecimento do ID. O CRUD público de imóvel só reutiliza endereços já vinculados exclusivamente ao usuário. Para o primeiro endereço/imóvel, use `complete-registration`, que cria ambos e garante o vínculo na mesma transação. O fluxo legado POST de endereço seguido de POST de imóvel com ID solto não é suportado pelas regras de titularidade; permitir esse fluxo exige persistir a autoria do endereço no schema.
 
 Imóveis, endereços e dispositivos compartilhados podem ser consultados pelos usuários vinculados. Alterações e exclusões que afetem outro usuário retornam `409`, pois o modelo atual não define papéis de administrador. DELETE de vínculo remove somente o vínculo do solicitante. A associação arbitrária a imóvel alheio é recusada; o CRUD de vínculos não funciona como convite ou transferência de propriedade. A criação inicial do vínculo ocorre no cadastro do imóvel.
 
