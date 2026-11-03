@@ -1,5 +1,13 @@
 package br.com.delta.delta_api_postgres.modules.analytics.controller;
 
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.OrganizationMonthlyKpiIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.PropertyMonthlyIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.MonitoringHourlyIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.DeviceStatusIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.DeviceSummaryIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.LeakIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.OrganizationEsgIO;
+import org.springframework.format.annotation.DateTimeFormat;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.AuditHistoryChainIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.CapexComparisonIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.ConsumptionDailyIO;
@@ -16,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -81,4 +90,44 @@ public class AnalyticsController {
                 analyticsService.findAuditHistory(regionRateId)
         );
     }
+
+    @GetMapping("/organization-kpi")
+    public ResponseEntity<List<OrganizationMonthlyKpiIO>> findOrganizationMonthlyKpi() {
+        return ResponseEntity.ok(analyticsService.findOrganizationMonthlyKpi());
+    }
+
+    @GetMapping("/property-monthly")
+    public ResponseEntity<List<PropertyMonthlyIO>> findPropertyMonthly(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate month) {
+        return ResponseEntity.ok(analyticsService.findPropertyMonthly(month));
+    }
+
+    @GetMapping("/monitoring-hourly")
+    public ResponseEntity<List<MonitoringHourlyIO>> findMonitoringHourly(
+            @RequestParam(defaultValue = "24") Integer hours,
+            @RequestParam(required = false) Integer windowMinutes) {
+        return ResponseEntity.ok(analyticsService.findMonitoringHourly(hours, windowMinutes));
+    }
+
+    @GetMapping("/devices")
+    public ResponseEntity<List<DeviceStatusIO>> findDeviceStatus() {
+        return ResponseEntity.ok(analyticsService.findDeviceStatus());
+    }
+
+    @GetMapping("/devices/summary")
+    public ResponseEntity<List<DeviceSummaryIO>> findDeviceSummary() {
+        return ResponseEntity.ok(analyticsService.findDeviceSummary());
+    }
+
+    @GetMapping("/leaks")
+    public ResponseEntity<List<LeakIO>> findLeaks(
+            @RequestParam(required = false) String status) {
+        return ResponseEntity.ok(analyticsService.findLeaks(status));
+    }
+
+    @GetMapping("/esg")
+    public ResponseEntity<List<OrganizationEsgIO>> findOrganizationEsg() {
+        return ResponseEntity.ok(analyticsService.findOrganizationEsg());
+    }
 }
+

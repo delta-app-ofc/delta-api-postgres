@@ -1,5 +1,13 @@
 package br.com.delta.delta_api_postgres.modules.analytics.service;
 
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.OrganizationMonthlyKpiIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.PropertyMonthlyIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.MonitoringHourlyIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.DeviceStatusIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.DeviceSummaryIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.LeakIO;
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.OrganizationEsgIO;
+import java.time.LocalDate;
 import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
 
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.AuditHistoryChainIO;
@@ -128,4 +136,143 @@ public class AnalyticsService {
                 ))
                 .toList();
     }
+
+    public List<OrganizationMonthlyKpiIO> findOrganizationMonthlyKpi() {
+        return analyticsRepository.findOrganizationMonthlyKpi(access.userId()).stream()
+                .map(p -> new OrganizationMonthlyKpiIO(
+                        p.getOrganizationId(),
+                        p.getReferenceMonth(),
+                        p.getTotalLiters(),
+                        p.getTotalCost(),
+                        p.getPreviousMonthLiters(),
+                        p.getVariationPct(),
+                        p.getProjectedLiters(),
+                        p.getProjectedCost(),
+                        p.getUnitsTotal(),
+                        p.getUnitsOnTarget(),
+                        p.getUnitsAttention(),
+                        p.getUnitsCritical(),
+                        p.getAvgGoalPct(),
+                        p.getEstimatedSavingsValue(),
+                        p.getSavedLiters(),
+                        p.getMinDaysWithData(),
+                        p.getIsCompleteMonth()
+                ))
+                .toList();
+    }
+
+    public List<PropertyMonthlyIO> findPropertyMonthly(LocalDate month) {
+        return analyticsRepository.findPropertyMonthly(access.userId(), month).stream()
+                .map(p -> new PropertyMonthlyIO(
+                        p.getPropertyId(),
+                        p.getPropertyName(),
+                        p.getOrganizationId(),
+                        p.getCity(),
+                        p.getState(),
+                        p.getRegionName(),
+                        p.getLatitude(),
+                        p.getLongitude(),
+                        p.getBuiltAreaM2(),
+                        p.getReferenceMonth(),
+                        p.getDaysWithData(),
+                        p.getIsCompleteMonth(),
+                        p.getTotalLiters(),
+                        p.getTotalCost(),
+                        p.getLitersPerM2(),
+                        p.getPreviousMonthLiters(),
+                        p.getVariationPct(),
+                        p.getMonthlyTargetLiters(),
+                        p.getGoalPct(),
+                        p.getGoalStatus(),
+                        p.getEstimatedSavingsValue(),
+                        p.getSavedLiters()
+                ))
+                .toList();
+    }
+
+    public List<MonitoringHourlyIO> findMonitoringHourly(Integer hours, Integer windowMinutes) {
+        return analyticsRepository.findMonitoringHourly(access.userId(), hours, windowMinutes).stream()
+                .map(p -> new MonitoringHourlyIO(
+                        p.getOrganizationId(),
+                        p.getPropertyId(),
+                        p.getPropertyName(),
+                        p.getWindowMinutes(),
+                        p.getReadingHour(),
+                        p.getTotalLiters(),
+                        p.getAvgFlowLmin(),
+                        p.getReadingsCount()
+                ))
+                .toList();
+    }
+
+    public List<DeviceStatusIO> findDeviceStatus() {
+        return analyticsRepository.findDeviceStatus(access.userId()).stream()
+                .map(p -> new DeviceStatusIO(
+                        p.getOrganizationId(),
+                        p.getPropertyId(),
+                        p.getPropertyName(),
+                        p.getRegionName(),
+                        p.getDeviceId(),
+                        p.getIsActive(),
+                        p.getConnectivityStatus(),
+                        p.getIsOnline(),
+                        p.getBatteryLevel(),
+                        p.getIsLowBattery(),
+                        p.getWifiSignalRssi(),
+                        p.getFirmwareVersion(),
+                        p.getLastPingAt(),
+                        p.getUnavailabilityReason()
+                ))
+                .toList();
+    }
+
+    public List<DeviceSummaryIO> findDeviceSummary() {
+        return analyticsRepository.findDeviceSummary(access.userId()).stream()
+                .map(p -> new DeviceSummaryIO(
+                        p.getOrganizationId(),
+                        p.getPropertiesTotal(),
+                        p.getDevicesPaired(),
+                        p.getDevicesOnline(),
+                        p.getDevicesLowBattery(),
+                        p.getPropertiesWithoutDevice()
+                ))
+                .toList();
+    }
+
+    public List<LeakIO> findLeaks(String status) {
+        return analyticsRepository.findLeaks(access.userId(), status).stream()
+                .map(p -> new LeakIO(
+                        p.getAlertKey(),
+                        p.getOrganizationId(),
+                        p.getPropertyId(),
+                        p.getPropertyName(),
+                        p.getDeviceId(),
+                        p.getSeverity(),
+                        p.getTriggeredAt(),
+                        p.getResolvedAt(),
+                        p.getLeakStatus(),
+                        p.getDurationMinutes(),
+                        p.getEstimatedLossLiters(),
+                        p.getEstimatedLossCost()
+                ))
+                .toList();
+    }
+
+    public List<OrganizationEsgIO> findOrganizationEsg() {
+        return analyticsRepository.findOrganizationEsg(access.userId()).stream()
+                .map(p -> new OrganizationEsgIO(
+                        p.getOrganizationId(),
+                        p.getReferenceMonth(),
+                        p.getSavedLitersMonth(),
+                        p.getSavedLitersYearProjection(),
+                        p.getTankTrucksEquivalent(),
+                        p.getFamilyMonthsEquivalent(),
+                        p.getUnitsTotal(),
+                        p.getUnitsOnTarget(),
+                        p.getAvgGoalPct(),
+                        p.getEstimatedSavingsValue()
+                ))
+                .toList();
+    }
 }
+
