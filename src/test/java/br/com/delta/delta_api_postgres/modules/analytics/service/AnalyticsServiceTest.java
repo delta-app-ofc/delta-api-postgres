@@ -1,9 +1,11 @@
 package br.com.delta.delta_api_postgres.modules.analytics.service;
 
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.AlertIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.DeviceSummaryIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.LeakIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.PropertyMonthlyIO;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.AnalyticsRepository;
+import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.AlertProjection;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.DeviceSummaryProjection;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.LeakProjection;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.PropertyMonthlyProjection;
@@ -67,6 +69,24 @@ class AnalyticsServiceTest {
 
         assertThat(result).singleElement().satisfies(item -> assertThat(item.leakStatus()).isEqualTo("ATIVO"));
         verify(analyticsRepository).findLeaks(USER_ID, "ATIVO");
+    }
+
+    @Test
+    void passesAlertFiltersToTheRepositoryAndMapsTheRow() {
+        AlertProjection row = mock(AlertProjection.class);
+        when(row.getAlertKey()).thenReturn(8L);
+        when(row.getAlertType()).thenReturn("dispositivo_offline");
+        when(row.getSeverity()).thenReturn("medium");
+        when(access.userId()).thenReturn(USER_ID);
+        when(analyticsRepository.findAlerts(USER_ID, "medium", null, true)).thenReturn(List.of(row));
+
+        List<AlertIO> result = service.findAlerts("medium", null, true);
+
+        assertThat(result).singleElement().satisfies(item -> {
+            assertThat(item.alertKey()).isEqualTo(8L);
+            assertThat(item.alertType()).isEqualTo("dispositivo_offline");
+            assertThat(item.severity()).isEqualTo("medium");
+        });
     }
 
     @Test

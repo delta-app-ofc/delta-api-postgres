@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.analytics.repository;
 
+import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.AlertProjection;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.OrganizationMonthlyKpiProjection;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.PropertyMonthlyProjection;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.MonitoringHourlyProjection;
@@ -285,5 +286,25 @@ public interface AnalyticsRepository extends JpaRepository<Property, Integer> {
         ORDER BY reference_month DESC, organization_id
         """, nativeQuery = true)
     List<OrganizationEsgProjection> findOrganizationEsg(@Param("userId") Integer userId);
+
+    @Query(value = """
+        SELECT
+            alert_key AS "alertKey",
+            property_id AS "propertyId",
+            property_name AS "propertyName",
+            device_id AS "deviceId",
+            alert_type AS "alertType",
+            severity AS "severity",
+            triggered_at AS "triggeredAt",
+            resolved_at AS "resolvedAt",
+            resolution_minutes AS "resolutionMinutes"
+        FROM dw.vw_ft_alert
+        WHERE property_id IN (SELECT property_id FROM tb_user_property WHERE user_id = :userId)
+          AND (CAST(:severity AS text) IS NULL OR severity = CAST(:severity AS text))
+          AND (CAST(:alertType AS text) IS NULL OR alert_type = CAST(:alertType AS text))
+          AND (CAST(:onlyActive AS boolean) IS NOT TRUE OR resolved_at IS NULL)
+        ORDER BY triggered_at DESC
+        """, nativeQuery = true)
+    List<AlertProjection> findAlerts(@Param("userId") Integer userId, @Param("severity") String severity, @Param("alertType") String alertType, @Param("onlyActive") Boolean onlyActive);
 }
 

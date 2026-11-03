@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.analytics.service;
 
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.AlertIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.OrganizationMonthlyKpiIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.PropertyMonthlyIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.MonitoringHourlyIO;
@@ -271,6 +272,22 @@ public class AnalyticsService {
                         p.getUnitsOnTarget(),
                         p.getAvgGoalPct(),
                         p.getEstimatedSavingsValue()
+                ))
+                .toList();
+    }
+
+    public List<AlertIO> findAlerts(String severity, String alertType, Boolean onlyActive) {
+        return analyticsRepository.findAlerts(access.userId(), severity, alertType, onlyActive).stream()
+                .map(p -> new AlertIO(
+                        p.getAlertKey(),
+                        p.getPropertyId(),
+                        p.getPropertyName(),
+                        p.getDeviceId(),
+                        p.getAlertType(),
+                        p.getSeverity(),
+                        p.getTriggeredAt(),
+                        p.getResolvedAt(),
+                        p.getResolutionMinutes()
                 ))
                 .toList();
     }

@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.analytics.controller;
 
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.AlertIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.OrganizationMonthlyKpiIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.PropertyMonthlyIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.MonitoringHourlyIO;
@@ -128,6 +129,14 @@ public class AnalyticsController {
     @GetMapping("/esg")
     public ResponseEntity<List<OrganizationEsgIO>> findOrganizationEsg() {
         return ResponseEntity.ok(analyticsService.findOrganizationEsg());
+    }
+
+    @GetMapping("/alerts")
+    public ResponseEntity<List<AlertIO>> findAlerts(
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String alertType,
+            @RequestParam(required = false) Boolean onlyActive) {
+        return ResponseEntity.ok(analyticsService.findAlerts(severity, alertType, onlyActive));
     }
 }
 
