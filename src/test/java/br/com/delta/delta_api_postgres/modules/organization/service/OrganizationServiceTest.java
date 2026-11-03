@@ -49,7 +49,7 @@ class OrganizationServiceTest {
     private OrganizationService organizationService;
 
     @Test
-    void create_quandoDadosValidos_deveSalvarERetornarOrganizacao() {
+    void create_whenValidData_savesAndReturnsOrganization() {
         OrganizationIO input = inputOrganizationIO();
         Organization organization = organization(null);
         Organization savedOrganization = organization(ORGANIZATION_ID);
@@ -68,7 +68,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void create_quandoCnpjJaExiste_deveLancarResourceAlreadyExistsException() {
+    void create_whenCnpjAlreadyExists_throwsResourceAlreadyExistsException() {
         OrganizationIO input = inputOrganizationIO();
         when(organizationRepository.existsByCnpj(CNPJ)).thenReturn(true);
 
@@ -81,7 +81,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void findAll_quandoExistemOrganizacoes_deveRetornarTodasMapeadas() {
+    void findAll_whenOrganizationsExist_returnsAllMapped() {
         when(access.userId()).thenReturn(1);
         Organization firstOrganization = organization(ORGANIZATION_ID);
         Organization secondOrganization = organization(2);
@@ -108,7 +108,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void findAll_quandoNaoExistemOrganizacoes_deveRetornarListaVazia() {
+    void findAll_whenNoOrganizationsExist_returnsEmptyList() {
         when(access.userId()).thenReturn(1);
         when(organizationRepository.findForUser(1)).thenReturn(List.of());
 
@@ -119,7 +119,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void findById_quandoOrganizacaoExiste_deveRetornarOrganizacaoMapeada() {
+    void findById_whenOrganizationExists_returnsOrganizationMapped() {
         Organization organization = organization(ORGANIZATION_ID);
         OrganizationIO expected = savedOrganizationIO();
 
@@ -133,7 +133,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void findById_quandoOrganizacaoNaoExiste_deveLancarResourceNotFoundException() {
+    void findById_whenOrganizationDoesNotExist_throwsResourceNotFoundException() {
         when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> organizationService.findById(ORGANIZATION_ID))
@@ -144,7 +144,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void update_quandoDadosValidos_deveAtualizarERetornarOrganizacao() {
+    void update_whenValidData_updatesAndReturnsOrganization() {
         OrganizationIO input = inputOrganizationIO();
         Organization organization = organization(ORGANIZATION_ID);
         OrganizationIO expected = savedOrganizationIO();
@@ -161,7 +161,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void update_quandoCnpjMudaParaUmJaExistente_deveLancarResourceAlreadyExistsException() {
+    void update_whenCnpjChangesToAnExistingOne_throwsResourceAlreadyExistsException() {
         OrganizationIO input = new OrganizationIO(
                 ORGANIZATION_ID,
                 CORPORATE_NAME,
@@ -185,7 +185,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void update_quandoOrganizacaoNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenOrganizationDoesNotExist_throwsResourceNotFoundException() {
         OrganizationIO input = inputOrganizationIO();
         when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.empty());
 
@@ -198,7 +198,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void delete_quandoOrganizacaoExiste_deveExcluirOrganizacao() {
+    void delete_whenOrganizationExists_deletesOrganization() {
         Organization organization = organization(ORGANIZATION_ID);
         when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.of(organization));
 
@@ -208,7 +208,7 @@ class OrganizationServiceTest {
     }
 
     @Test
-    void delete_quandoOrganizacaoNaoExiste_deveLancarResourceNotFoundException() {
+    void delete_whenOrganizationDoesNotExist_throwsResourceNotFoundException() {
         when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> organizationService.delete(ORGANIZATION_ID))

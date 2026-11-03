@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres;
 
+import java.math.BigDecimal;
 import br.com.delta.delta_api_postgres.modules.auth.dto.CompleteRegistrationRequest;
 import br.com.delta.delta_api_postgres.modules.auth.entity.AuthUser;
 import br.com.delta.delta_api_postgres.modules.auth.repository.AuthUserRepository;
@@ -47,7 +48,7 @@ class RegistrationRollbackTests extends AuthTestConfig {
         region = regions.saveAndFlush(region);
         municipalities.saveAndFlush(new Municipality("São Paulo", 3550308, region));
         var request = new CompleteRegistrationRequest(
-                new CreateAddressRequest("01001000", "São Paulo", "SP", null, null),
+                new CreateAddressRequest("01001000", "São Paulo", "SP", new BigDecimal("-23.550520"), new BigDecimal("-46.633308")),
                 new CompleteRegistrationRequest.PropertyDetails("Casa", PropertyType.CASA,
                         PropertyClassification.RESIDENCIAL_NORMAL, null, null), List.of());
         var before = addresses.count();

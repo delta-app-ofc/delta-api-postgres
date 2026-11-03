@@ -44,4 +44,28 @@ class HealthServiceTest {
 
         assertThat(healthService.isHealthy()).isFalse();
     }
+
+    @Test
+    void returnsDownWhenDatabaseConnectionIsInvalid() throws Exception {
+        Connection database = mock(Connection.class);
+        RedisConnection redis = mock(RedisConnection.class);
+        when(dataSource.getConnection()).thenReturn(database);
+        when(redisFactory.getConnection()).thenReturn(redis);
+        when(database.isValid(2)).thenReturn(false);
+        when(redis.ping()).thenReturn("PONG");
+
+        assertThat(healthService.isHealthy()).isFalse();
+    }
+
+    @Test
+    void returnsDownWhenRedisDoesNotReturnPong() throws Exception {
+        Connection database = mock(Connection.class);
+        RedisConnection redis = mock(RedisConnection.class);
+        when(dataSource.getConnection()).thenReturn(database);
+        when(redisFactory.getConnection()).thenReturn(redis);
+        when(database.isValid(2)).thenReturn(true);
+        when(redis.ping()).thenReturn("LOADING");
+
+        assertThat(healthService.isHealthy()).isFalse();
+    }
 }

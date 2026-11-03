@@ -38,7 +38,7 @@ class RegionRateServiceTest {
     private RegionRateService regionRateService;
 
     @Test
-    void findByRegion_quandoUltimaTarifaSolicitada_deveRetornarSomenteTarifasVigentes() {
+    void findByRegion_whenLatestRateRequested_returnsOnlyCurrentRates() {
         // Arrange
         RegionRate firstRate = new RegionRate();
         RegionRate secondRate = new RegionRate();
@@ -73,7 +73,7 @@ class RegionRateServiceTest {
     }
 
     @Test
-    void findByRegion_quandoTodasAsTarifasSolicitadas_deveRetornarHistoricoCompleto() {
+    void findByRegion_whenAllRatesRequested_returnsFullHistory() {
         RegionRate currentRate = new RegionRate();
         RegionRate previousRate = new RegionRate();
         RegionRateIO currentIO = regionRateIO(
@@ -102,7 +102,7 @@ class RegionRateServiceTest {
     }
 
     @Test
-    void findByRegion_quandoParametroLastForNulo_deveRetornarHistoricoCompleto() {
+    void findByRegion_whenLastParameterIsNull_returnsFullHistory() {
         RegionRate rate = new RegionRate();
         RegionRateIO expected = regionRateIO(
                 1,
@@ -123,7 +123,7 @@ class RegionRateServiceTest {
     }
 
     @Test
-    void findByRegion_quandoNaoExisteTarifaVigente_deveLancarResourceNotFoundException() {
+    void findByRegion_whenNoCurrentRateExists_throwsResourceNotFoundException() {
         when(regionRateRepository
                 .findAllByRegionIdAndFinalValidityIsNullOrderByInitialValidityDesc(REGION_ID))
                 .thenReturn(List.of());
@@ -138,7 +138,7 @@ class RegionRateServiceTest {
     }
 
     @Test
-    void findByRegion_quandoNaoExisteHistorico_deveLancarResourceNotFoundException() {
+    void findByRegion_whenNoHistoryExists_throwsResourceNotFoundException() {
         when(regionRateRepository.findAllByRegionIdOrderByInitialValidityDesc(REGION_ID))
                 .thenReturn(List.of());
 
@@ -152,7 +152,7 @@ class RegionRateServiceTest {
     }
 
     @Test
-    void findByRegion_quandoLastForNuloENaoExisteHistorico_deveLancarResourceNotFoundException() {
+    void findByRegion_whenLastIsNullAndNoHistoryExists_throwsResourceNotFoundException() {
         when(regionRateRepository.findAllByRegionIdOrderByInitialValidityDesc(REGION_ID))
                 .thenReturn(List.of());
 

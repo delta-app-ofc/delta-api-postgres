@@ -52,7 +52,7 @@ class AddressServiceTest {
     private AddressService addressService;
 
     @Test
-    void create_quandoDadosValidos_deveSalvarERetornarEndereco() {
+    void create_whenValidData_savesAndReturnsAddress() {
         // Arrange
         AddressIO input = inputAddressIO();
         Region region = new Region();
@@ -75,7 +75,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void create_quandoCidadeNaoTemRegiao_deveLancarBadRequest() {
+    void create_whenCityHasNoRegion_throwsBadRequest() {
         AddressIO input = inputAddressIO();
         when(municipalityRepository.findByNameIgnoreCase(CITY)).thenReturn(Optional.empty());
 
@@ -89,7 +89,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void create_quandoEstadoNaoESp_deveLancarBadRequestSemConsultarMunicipio() {
+    void create_whenStateIsNotSp_throwsBadRequestWithoutQueryingMunicipality() {
         AddressIO input = new AddressIO(null, REGION_ID, CEP, CITY, "RJ", null, null);
 
         assertThatThrownBy(() -> addressService.create(input))
@@ -102,7 +102,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void findAll_quandoExistemEnderecos_deveRetornarTodosMapeados() {
+    void findAll_whenAddressesExist_returnsAllMapped() {
         when(access.userId()).thenReturn(1);
         Region region = new Region();
         Address firstAddress = address(ADDRESS_ID, region);
@@ -123,7 +123,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void findAll_quandoNaoExistemEnderecos_deveRetornarListaVazia() {
+    void findAll_whenNoAddressesExist_returnsEmptyList() {
         when(access.userId()).thenReturn(1);
         when(addressRepository.findForUser(1)).thenReturn(List.of());
 
@@ -134,7 +134,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void findById_quandoEnderecoExiste_deveRetornarEnderecoMapeado() {
+    void findById_whenAddressExists_returnsAddressMapped() {
         Address address = address(ADDRESS_ID, new Region());
         AddressIO expected = savedAddressIO();
 
@@ -148,7 +148,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void findById_quandoEnderecoNaoExiste_deveLancarResourceNotFoundException() {
+    void findById_whenAddressDoesNotExist_throwsResourceNotFoundException() {
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.findById(ADDRESS_ID))
@@ -159,7 +159,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void update_quandoDadosValidos_deveAtualizarERetornarEndereco() {
+    void update_whenValidData_updatesAndReturnsAddress() {
         AddressIO input = inputAddressIO();
         Region region = new Region();
         Address address = address(ADDRESS_ID, region);
@@ -178,7 +178,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void update_quandoEnderecoNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenAddressDoesNotExist_throwsResourceNotFoundException() {
         AddressIO input = inputAddressIO();
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.empty());
 
@@ -191,7 +191,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void update_quandoCidadeNaoTemRegiao_deveLancarBadRequest() {
+    void update_whenCityHasNoRegion_throwsBadRequest() {
         AddressIO input = inputAddressIO();
         Address address = address(ADDRESS_ID, new Region());
 
@@ -208,7 +208,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void delete_quandoEnderecoExiste_deveExcluirEndereco() {
+    void delete_whenAddressExists_deletesAddress() {
         Address address = address(ADDRESS_ID, new Region());
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
 
@@ -218,7 +218,7 @@ class AddressServiceTest {
     }
 
     @Test
-    void delete_quandoEnderecoNaoExiste_deveLancarResourceNotFoundException() {
+    void delete_whenAddressDoesNotExist_throwsResourceNotFoundException() {
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.delete(ADDRESS_ID))

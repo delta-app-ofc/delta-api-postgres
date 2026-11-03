@@ -47,7 +47,7 @@ class LastWaterBillServiceTest {
     private LastWaterBillService lastWaterBillService;
 
     @Test
-    void create_quandoDadosValidos_deveSalvarERetornarFatura() {
+    void create_whenValidData_savesAndReturnsBill() {
         // Arrange
         LastWaterBillIO input = inputBillIO();
         LastWaterBill bill = bill(null, USER_ID, MONTH);
@@ -69,7 +69,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void create_quandoJaExisteFaturaParaUsuarioEMes_deveLancarResourceAlreadyExistsException() {
+    void create_whenBillAlreadyExistsForUserAndMonth_throwsResourceAlreadyExistsException() {
         LastWaterBillIO input = inputBillIO();
         when(lastWaterBillRepository.existsByUserIdAndMonth(USER_ID, MONTH)).thenReturn(true);
 
@@ -82,7 +82,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void findAll_quandoExistemFaturas_deveRetornarTodasMapeadas() {
+    void findAll_whenBillsExist_returnsAllMapped() {
         when(access.userId()).thenReturn(1);
         LastWaterBill firstBill = bill(BILL_ID, USER_ID, MONTH);
         LastWaterBill secondBill = bill(2, 20, LocalDate.of(2026, 9, 1));
@@ -107,7 +107,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void findAll_quandoNaoExistemFaturas_deveRetornarListaVazia() {
+    void findAll_whenNoBillsExist_returnsEmptyList() {
         when(access.userId()).thenReturn(1);
         when(lastWaterBillRepository.findByUserId(1)).thenReturn(List.of());
 
@@ -118,7 +118,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void findById_quandoFaturaExiste_deveRetornarFaturaMapeada() {
+    void findById_whenBillExists_returnsBillMapped() {
         LastWaterBill bill = bill(BILL_ID, USER_ID, MONTH);
         LastWaterBillIO expected = savedBillIO();
 
@@ -132,7 +132,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void findById_quandoFaturaNaoExiste_deveLancarResourceNotFoundException() {
+    void findById_whenBillDoesNotExist_throwsResourceNotFoundException() {
         when(lastWaterBillRepository.findById(BILL_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> lastWaterBillService.findById(BILL_ID))
@@ -143,7 +143,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void update_quandoUsuarioEMesNaoMudaram_deveAtualizarSemVerificarDuplicidade() {
+    void update_whenUserAndMonthDidNotChange_updatesWithoutCheckingDuplicates() {
         LastWaterBillIO input = new LastWaterBillIO(
                 BILL_ID,
                 USER_ID,
@@ -169,7 +169,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void update_quandoUsuarioOuMesMudaramENaoHaDuplicidade_deveAtualizarFatura() {
+    void update_whenUserOrMonthChangedAndNoDuplicates_updatesBill() {
         Integer newUserId = 20;
         LocalDate newMonth = LocalDate.of(2026, 9, 1);
         LastWaterBillIO input = new LastWaterBillIO(
@@ -196,7 +196,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void update_quandoFaturaNaoExiste_deveLancarResourceNotFoundException() {
+    void update_whenBillDoesNotExist_throwsResourceNotFoundException() {
         LastWaterBillIO input = inputBillIO();
         when(lastWaterBillRepository.findById(BILL_ID)).thenReturn(Optional.empty());
 
@@ -209,7 +209,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void update_quandoNovoUsuarioEMesJaPossuemFatura_deveLancarResourceAlreadyExistsException() {
+    void update_whenNewUserAndMonthAlreadyHaveBill_throwsResourceAlreadyExistsException() {
         Integer newUserId = 20;
         LocalDate newMonth = LocalDate.of(2026, 9, 1);
         LastWaterBillIO input = new LastWaterBillIO(
@@ -233,7 +233,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void delete_quandoFaturaExiste_deveExcluirFatura() {
+    void delete_whenBillExists_deletesBill() {
         LastWaterBill bill = bill(BILL_ID, USER_ID, MONTH);
         when(lastWaterBillRepository.findById(BILL_ID)).thenReturn(Optional.of(bill));
 
@@ -243,7 +243,7 @@ class LastWaterBillServiceTest {
     }
 
     @Test
-    void delete_quandoFaturaNaoExiste_deveLancarResourceNotFoundException() {
+    void delete_whenBillDoesNotExist_throwsResourceNotFoundException() {
         when(lastWaterBillRepository.findById(BILL_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> lastWaterBillService.delete(BILL_ID))

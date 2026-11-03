@@ -13,6 +13,7 @@ import br.com.delta.delta_api_postgres.modules.habit.repository.HabitRepository;
 import br.com.delta.delta_api_postgres.modules.habit.repository.UserHabitRepository;
 import lombok.RequiredArgsConstructor;
 import br.com.delta.delta_api_postgres.modules.auth.security.UserDataAccess;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -39,6 +41,7 @@ public class UserHabitService {
         access.requireUser(io.userId());
 
         validateTimes(io);
+        validateNoConflict(io.userId(), io, null);
 
         Habit habit = habitRepository.findById(io.habitId())
                 .orElseThrow(() ->
@@ -58,7 +61,7 @@ public class UserHabitService {
 
         addDays(userHabit, io.daysOfWeek());
 
-        UserHabit saved = userHabitRepository.save(userHabit);
+        UserHabit saved = saveAndFlushChecked(userHabit);
 
         return userHabitMapper.toIO(saved);
     }
@@ -112,15 +115,7 @@ public class UserHabitService {
 
         validateOwnership(userHabit, userId);
 
-        if (!userHabit.getHabit().getId().equals(io.habitId()) &&
-                userHabitRepository.existsByUserIdAndHabit_Id(
-                        userId,
-                        io.habitId()
-                )) {
-            throw new ResourceAlreadyExistsException(
-                    "O usuário já possui o novo hábito informado"
-            );
-        }
+        validateNoConflict(userId, io, id);
 
         Habit habit = habitRepository.findById(io.habitId())
                 .orElseThrow(() ->
@@ -136,6 +131,8 @@ public class UserHabitService {
         userHabit.setEstimatedLiters(io.estimatedLiters());
 
         syncDays(userHabit, io.daysOfWeek());
+
+        saveAndFlushChecked(userHabit);
 
         return userHabitMapper.toIO(userHabit);
     }
@@ -170,6 +167,46 @@ public class UserHabitService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Informe horário de início e fim juntos, com o fim depois do início"
+            );
+        }
+    }
+
+    // Mirrors the database trigger: the same habit cannot repeat on the same day and start time.
+    // The same habit may exist several times as long as the day or the start time differs.
+    private void validateNoConflict(
+            Integer userId,
+            UserHabitIO io,
+            Integer ignoredId
+    ) {
+
+        Set<Integer> requestedDayIds = new HashSet<>(io.daysOfWeek());
+
+        boolean conflict = userHabitRepository.findByUserId(userId)
+                .stream()
+                .filter(other -> !Objects.equals(other.getId(), ignoredId))
+                .filter(other -> other.getHabit().getId().equals(io.habitId()))
+                .filter(other -> Objects.equals(other.getStartTime(), io.startTime()))
+                .anyMatch(other -> other.getDays()
+                        .stream()
+                        .anyMatch(day -> requestedDayIds.contains(day.getDayOfWeek().getId())));
+
+        if (conflict) {
+            throw new ResourceAlreadyExistsException(
+                    "O usuário já possui esse hábito nesse dia e horário"
+            );
+        }
+    }
+
+    // The pre-check above is not atomic: two concurrent requests can both pass it.
+    // The database trigger is the source of truth, so flush now to surface its
+    // violation here and report it as a conflict instead of failing at commit.
+    private UserHabit saveAndFlushChecked(UserHabit userHabit) {
+
+        try {
+            return userHabitRepository.saveAndFlush(userHabit);
+        } catch (DataIntegrityViolationException exception) {
+            throw new ResourceAlreadyExistsException(
+                    "O usuário já possui esse hábito nesse dia e horário"
             );
         }
     }
