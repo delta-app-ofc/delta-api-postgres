@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.analytics.repository;
 
+import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.InvestmentImpactProjection;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.AlertProjection;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.OrganizationMonthlyKpiProjection;
 import br.com.delta.delta_api_postgres.modules.analytics.repository.projection.PropertyMonthlyProjection;
@@ -184,6 +185,8 @@ public interface AnalyticsRepository extends JpaRepository<Property, Integer> {
             variation_pct AS "variationPct",
             monthly_target_liters AS "monthlyTargetLiters",
             goal_pct AS "goalPct",
+            daily_limit_liters AS "dailyLimitLiters",
+            remaining_liters AS "remainingLiters",
             goal_status AS "goalStatus",
             estimated_savings_value AS "estimatedSavingsValue",
             saved_liters AS "savedLiters"
@@ -307,5 +310,24 @@ public interface AnalyticsRepository extends JpaRepository<Property, Integer> {
         ORDER BY triggered_at DESC
         """, nativeQuery = true)
     List<AlertProjection> findAlerts(@Param("userId") Integer userId, @Param("severity") String severity, @Param("alertType") String alertType, @Param("onlyActive") Boolean onlyActive);
+
+    @Query(value = """
+        SELECT
+            scenario_id AS "scenarioId",
+            organization_id AS "organizationId",
+            name AS "name",
+            investment_value AS "investmentValue",
+            reduction_pct AS "reductionPct",
+            annual_savings_value AS "annualSavingsValue",
+            payback_months AS "paybackMonths",
+            baseline_annual_liters AS "baselineAnnualLiters",
+            saved_liters_year AS "savedLitersYear",
+            tank_trucks_equivalent AS "tankTrucksEquivalent",
+            family_months_equivalent AS "familyMonthsEquivalent"
+        FROM dw.vw_ft_investment_impact
+        WHERE organization_id IN (SELECT p.organization_id FROM tb_property p JOIN tb_user_property up ON up.property_id = p.id WHERE up.user_id = :userId UNION SELECT uo.organization_id FROM tb_user_organization uo WHERE uo.user_id = :userId)
+        ORDER BY organization_id, scenario_id
+        """, nativeQuery = true)
+    List<InvestmentImpactProjection> findInvestmentImpact(@Param("userId") Integer userId);
 }
 

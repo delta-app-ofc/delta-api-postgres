@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.analytics.service;
 
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.InvestmentImpactIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.AlertIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.OrganizationMonthlyKpiIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.PropertyMonthlyIO;
@@ -184,6 +185,8 @@ public class AnalyticsService {
                         p.getVariationPct(),
                         p.getMonthlyTargetLiters(),
                         p.getGoalPct(),
+                        p.getDailyLimitLiters(),
+                        p.getRemainingLiters(),
                         p.getGoalStatus(),
                         p.getEstimatedSavingsValue(),
                         p.getSavedLiters()
@@ -289,6 +292,24 @@ public class AnalyticsService {
                         p.getTriggeredAt(),
                         p.getResolvedAt(),
                         p.getResolutionMinutes()
+                ))
+                .toList();
+    }
+
+    public List<InvestmentImpactIO> findInvestmentImpact() {
+        return analyticsRepository.findInvestmentImpact(access.userId()).stream()
+                .map(p -> new InvestmentImpactIO(
+                        p.getScenarioId(),
+                        p.getOrganizationId(),
+                        p.getName(),
+                        p.getInvestmentValue(),
+                        p.getReductionPct(),
+                        p.getAnnualSavingsValue(),
+                        p.getPaybackMonths(),
+                        p.getBaselineAnnualLiters(),
+                        p.getSavedLitersYear(),
+                        p.getTankTrucksEquivalent(),
+                        p.getFamilyMonthsEquivalent()
                 ))
                 .toList();
     }

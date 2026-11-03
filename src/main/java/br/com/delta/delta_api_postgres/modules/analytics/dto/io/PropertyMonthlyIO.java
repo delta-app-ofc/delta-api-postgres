@@ -23,6 +23,8 @@ public record PropertyMonthlyIO(
         BigDecimal variationPct,
         BigDecimal monthlyTargetLiters,
         BigDecimal goalPct,
+        BigDecimal dailyLimitLiters,
+        BigDecimal remainingLiters,
         String goalStatus,
         BigDecimal estimatedSavingsValue,
         BigDecimal savedLiters

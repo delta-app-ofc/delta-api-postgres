@@ -42,6 +42,10 @@ public interface PropertyMonthlyProjection {
 
     BigDecimal getGoalPct();
 
+    BigDecimal getDailyLimitLiters();
+
+    BigDecimal getRemainingLiters();
+
     String getGoalStatus();
 
     BigDecimal getEstimatedSavingsValue();

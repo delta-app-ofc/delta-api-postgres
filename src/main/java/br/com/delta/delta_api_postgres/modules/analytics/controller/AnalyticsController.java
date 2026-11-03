@@ -1,5 +1,6 @@
 package br.com.delta.delta_api_postgres.modules.analytics.controller;
 
+import br.com.delta.delta_api_postgres.modules.analytics.dto.io.InvestmentImpactIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.AlertIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.OrganizationMonthlyKpiIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.PropertyMonthlyIO;
@@ -137,6 +138,11 @@ public class AnalyticsController {
             @RequestParam(required = false) String alertType,
             @RequestParam(required = false) Boolean onlyActive) {
         return ResponseEntity.ok(analyticsService.findAlerts(severity, alertType, onlyActive));
+    }
+
+    @GetMapping("/investment-impact")
+    public ResponseEntity<List<InvestmentImpactIO>> findInvestmentImpact() {
+        return ResponseEntity.ok(analyticsService.findInvestmentImpact());
     }
 }
 
