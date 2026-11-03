@@ -12,6 +12,8 @@ import br.com.delta.delta_api_postgres.modules.organization.entity.Organization;
 import br.com.delta.delta_api_postgres.modules.organization.enums.OrganizationSegment;
 import br.com.delta.delta_api_postgres.modules.property.entity.Property;
 import br.com.delta.delta_api_postgres.modules.property.entity.PropertyClassificationEntity;
+import br.com.delta.delta_api_postgres.modules.property.entity.PropertyOperationDay;
+import br.com.delta.delta_api_postgres.modules.property.entity.PropertyShift;
 import br.com.delta.delta_api_postgres.modules.property.enums.*;
 import br.com.delta.delta_api_postgres.modules.region.entity.Region;
 import br.com.delta.delta_api_postgres.modules.region.entity.Municipality;
@@ -295,6 +297,70 @@ class UserDataIntegrationTests extends AuthTestConfig {
         mvc.perform(delete("/delta/user-properties/" + alice.getId() + "/" + aliceLink.getId())
                 .header("Authorization", bearer)).andExpect(status().isNoContent());
         assertThat(em.find(Property.class, aliceProperty.getId())).isNotNull();
+    }
+
+    @Test void internalOwnerLookupReturnsPropertyUsersAndClassificationWithTheServiceKey() throws Exception {
+        mvc.perform(get("/delta/internal/device/" + aliceDevice.getDeviceId() + "/owner")
+                        .header("X-Service-Key", "test-service-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("deviceId").value(aliceDevice.getDeviceId()))
+                .andExpect(jsonPath("propertyId").value(aliceProperty.getId()))
+                .andExpect(jsonPath("classificationGroup").value("RESIDENCIAL"))
+                .andExpect(jsonPath("userIds[0]").value(alice.getId()))
+                .andExpect(jsonPath("userIds.length()").value(1));
+    }
+
+    @Test void internalOwnerLookupReturnsTheShiftsAndOperationDaysOfTheProperty() throws Exception {
+        // Usa o cadastro compartilhado "Segunda-feira", não um nome abreviado exclusivo deste teste.
+        var monday = day;
+        var shift = new PropertyShift();
+        shift.setPropertyId(aliceProperty.getId());
+        shift.setStartTime(LocalTime.of(8, 0));
+        shift.setEndTime(LocalTime.of(18, 0));
+        em.persist(shift);
+        var operationDay = new PropertyOperationDay();
+        operationDay.setPropertyId(aliceProperty.getId());
+        operationDay.setDayOfWeekId(monday.getId());
+        em.persist(operationDay);
+        em.flush();
+
+        mvc.perform(get("/delta/internal/device/" + aliceDevice.getDeviceId() + "/owner")
+                        .header("X-Service-Key", "test-service-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("shifts.length()").value(1))
+                .andExpect(jsonPath("shifts[0].startTime").value("08:00"))
+                .andExpect(jsonPath("shifts[0].endTime").value("18:00"))
+                .andExpect(jsonPath("operationDays[0]").value("MONDAY"));
+    }
+
+    @Test void internalOwnerLookupReturnsEmptyShiftsWhenThePropertyHasNone() throws Exception {
+        mvc.perform(get("/delta/internal/device/" + aliceDevice.getDeviceId() + "/owner")
+                        .header("X-Service-Key", "test-service-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("shifts.length()").value(0))
+                .andExpect(jsonPath("operationDays.length()").value(0));
+    }
+
+    @Test void internalOwnerLookupReturnsNotFoundForAnUnknownDevice() throws Exception {
+        mvc.perform(get("/delta/internal/device/NAO-EXISTE/owner").header("X-Service-Key", "test-service-key"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test void internalOwnerLookupRejectsMissingOrWrongServiceKey() throws Exception {
+        String path = "/delta/internal/device/" + aliceDevice.getDeviceId() + "/owner";
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mvc.perform(get(path).header("X-Service-Key", "errada")).andExpect(status().isUnauthorized());
+    }
+
+    @Test void internalOwnerLookupIsNotOpenToAnAuthenticatedUserToken() throws Exception {
+        mvc.perform(get("/delta/internal/device/" + aliceDevice.getDeviceId() + "/owner")
+                        .header("Authorization", bearer))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test void theServiceKeyDoesNotOpenUserEndpoints() throws Exception {
+        mvc.perform(get("/delta/device").header("X-Service-Key", "test-service-key"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test void canDeleteOwnDeviceBillAndHabit() throws Exception {
