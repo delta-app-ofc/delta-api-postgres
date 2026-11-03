@@ -1,5 +1,102 @@
-# delta-api-postgres
-Spring Boot REST API responsável por gerenciar dados relacionais na plataforma Delta.
+# Delta · API relacional PostgreSQL
+
+![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.16-6DB33F?logo=springboot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Spring%20Data%20JPA-4169E1?logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-refresh%20tokens-DC382D?logo=redis&logoColor=white)
+![OpenAPI](https://img.shields.io/badge/springdoc-2.8.17-6BA539?logo=swagger&logoColor=white)
+
+A API que protege a conta e conecta pessoas aos seus imóveis, dispositivos, tarifas e dados de consumo. Este serviço Spring Boot concentra autenticação, cadastro e operações relacionais do Delta; PostgreSQL guarda o estado cadastral, e Redis armazena as sessões de refresh token.
+
+**Tags:** `delta` · `api-rest` · `spring-boot` · `java-17` · `postgresql` · `redis` · `jwt-rs256` · `openapi`
+
+## Sumário
+
+- [Visão geral](#visão-geral)
+- [Arquitetura e módulos](#arquitetura-e-módulos)
+- [Configuração e execução](#configuração-e-execução)
+- [Testes e build de container](#testes-e-build-de-container)
+- [Cadastro mobile em duas chamadas](#cadastro-mobile-em-duas-chamadas)
+- [Banco indisponível por cota do Neon](#banco-indisponível-por-cota-do-neon)
+- [Consulta pública de classificação por e-mail](#consulta-pública-de-classificação-por-e-mail)
+- [Consulta, atualização e exclusão do usuário](#consulta-atualização-e-exclusão-do-usuário)
+- [Testes e validação](#testes-e-validação)
+- [Estrutura do repositório](#estrutura-do-repositório)
+- [Repositórios relacionados](#repositórios-relacionados)
+
+## Visão geral
+
+| Camada | Responsabilidade |
+|---|---|
+| Autenticação | Cadastro e login, access tokens JWT assinados com RSA, renovação de sessão e controle do próprio perfil. |
+| Dados relacionais | Operações sobre usuários, endereços, imóveis, dispositivos, hábitos, organizações, tarifas e contas de água. |
+| Autorização | Vincula a identidade autenticada às consultas e alterações de dados; respostas de erro usam um formato comum. |
+| Sessões | Usa Redis para refresh tokens; a conexão é configurável por ambiente. |
+| Analytics | Expõe consultas de consumo, custo, rankings, variação e auditoria, respeitando os escopos implementados. |
+| Documentação | Expõe Swagger UI e especificação OpenAPI. |
+
+O schema PostgreSQL não é criado pelo Hibernate (`ddl-auto=none`). Prepare as tabelas e rotinas necessárias a partir do repositório [delta-sql-database](https://github.com/delta-app-ofc/delta-sql-database) antes de conectar a API. A configuração local não provisiona PostgreSQL ou Redis.
+
+## Arquitetura e módulos
+
+A aplicação organiza os endpoints por módulos em `src/main/java/br/com/delta/delta_api_postgres/modules/`. Cada módulo mantém controllers, serviços, entidades, repositórios, DTOs, mapeadores e anotações OpenAPI conforme necessário.
+
+| Módulo | Domínio |
+|---|---|
+| `auth` | Cadastro, login, refresh token, perfil e autorização JWT. |
+| `address`, `property`, `user_property` | Endereços, imóveis e vínculos entre usuários e imóveis. |
+| `device`, `last_water_bill`, `habit` | Dispositivos, contas de água e hábitos de consumo. |
+| `organization`, `region_rate` | Organizações, regiões e tarifas. |
+| `analytics` | Consultas analíticas e rankings expostos pela API. |
+| `common` | Saúde, configuração OpenAPI, tratamento de erros e serviços compartilhados. |
+
+O endpoint `GET /health` verifica PostgreSQL e Redis. Swagger UI fica em `/swagger-ui.html` e o JSON OpenAPI em `/v3/api-docs`. O servidor local usa a porta padrão do Spring Boot, `8080`; o Dockerfile configura a imagem de execução para a porta `10000`, ajustável por `PORT`.
+
+## Configuração e execução
+
+Requisitos: Java 17 e o Maven Wrapper versionado neste repositório. Para execução funcional também são necessários um PostgreSQL com o schema Delta já instalado e um Redis acessível. A aplicação lê `.env` no desenvolvimento local.
+
+1. Copie `.env.example` para `.env` e configure `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e a conexão Redis conforme seu ambiente. O arquivo de exemplo contém valores ilustrativos; não versione credenciais reais.
+2. Na primeira execução local, gere um par RSA de desenvolvimento. O utilitário não sobrescreve arquivos existentes; as chaves ficam em `.local/`, ignorada pelo Git.
+
+Linux/macOS:
+
+~~~bash
+cp .env.example .env
+mkdir -p .local
+javac -d .local scripts/GenerateLocalKeys.java
+java -cp .local GenerateLocalKeys
+./mvnw spring-boot:run
+~~~
+
+Windows PowerShell:
+
+~~~powershell
+Copy-Item .env.example .env
+New-Item -ItemType Directory -Force .local | Out-Null
+javac -d .local scripts/GenerateLocalKeys.java
+java -cp .local GenerateLocalKeys
+.\mvnw.cmd spring-boot:run
+~~~
+
+A configuração JWT permite ajustar emissor, audiência, identificador da chave, origens CORS, limite de tentativas e validade do refresh token. O modo TLS do Redis também é configurável; confira [`.env.example`](.env.example) e `src/main/resources/application.properties` para todos os nomes e padrões.
+
+## Testes e build de container
+
+Execute os testes com o Maven Wrapper:
+
+~~~bash
+./mvnw test
+~~~
+
+No Windows PowerShell, use `.\mvnw.cmd test`. Os testes configuram H2 em memória no modo PostgreSQL e simulam o Redis quando necessário; eles não substituem validação das procedures, triggers e restrições no PostgreSQL real.
+
+O Dockerfile constrói uma imagem de execução que escuta na porta `10000` por padrão. O estágio de build usa `-DskipTests`, então rode a suíte separadamente antes de gerar a imagem:
+
+~~~bash
+docker build -t delta-api-postgres:local .
+~~~
+
 ## Cadastro mobile em duas chamadas
 
 1. `POST /delta/auth/create-account` (público, com limite de tentativas): recebe os dados das duas primeiras telas e retorna `accessToken`, `refreshToken` e seus prazos.
@@ -18,7 +115,7 @@ Spring Boot REST API responsável por gerenciar dados relacionais na plataforma 
 
 ```json
 {
-  "address": { "cep": "01001000", "city": "São Paulo", "state": "SP", "latitude": -23.550520, "longitude": -46.633308 },
+  "address": { "regionId": 1, "cep": "01001000", "city": "São Paulo", "state": "SP" },
   "property": {
     "name": "Casa principal",
     "type": "CASA",
@@ -101,10 +198,28 @@ Analytics por imóvel e custo de água validam o vínculo; ranking residencial v
 
 Erros seguem `ErrorResponse`: `400` para dados inválidos, `401` para sessão ausente/inválida ou conta inativa, `403` para tentativa explícita de usar outro usuário ou operação sem permissão, `404` para registro inexistente/fora do escopo e `409` para duplicidade, compartilhamento ou dependência de exclusão.
 
-### Validação da implementação
+### Testes e validação
 
 Execute `./mvnw.cmd test` no Windows. Os testes de integração usam H2, JWT assinado e Redis simulado; cobrem perfil, desativação, isolamento entre usuários, recursos compartilhados e dependências. Procedures, triggers, FKs adicionais e concorrência específica do PostgreSQL precisam ser validados em um banco de testes com o schema real antes de produção.
 
-Resultado da validação desta implementação: 137 testes aprovados, incluindo 21 novos cenários de perfil e autorização. Os 10 testes HTTP existentes de dispositivos tiveram erro de inicialização por loopback do Java neste ambiente (`Unable to establish loopback connection`); a suíte completa ainda precisa ser repetida em ambiente com sockets locais funcionais. Nenhum teste foi desabilitado.
+O último resultado registrado antes desta revisão foi de 137 testes aprovados, incluindo 21 cenários novos de perfil e autorização. Naquele registro, 10 testes HTTP de dispositivos não iniciaram por falha de loopback do Java (`Unable to establish loopback connection`); a suíte completa ainda precisava ser repetida em ambiente com sockets locais funcionais. Este é um registro histórico do README, não uma execução realizada nesta atualização. Nenhum teste foi desabilitado.
 
-Consulte [DOCKER-HELP.md](DOCKER-HELP.md) para executar a suíte local em Docker e construir a imagem da aplicação.
+## Estrutura do repositório
+
+| Caminho | Conteúdo |
+|---|---|
+| `src/main/java/.../modules/` | Módulos HTTP, regras da aplicação, entidades e repositórios. |
+| `src/main/java/.../common/` | Configuração de segurança/OpenAPI, health check, erros e serviços comuns. |
+| `src/main/resources/application.properties` | Configuração do datasource, JWT, Redis e documentação HTTP. |
+| `src/test/java/` e `src/test/resources/` | Testes automatizados com configuração H2 isolada. |
+| `scripts/GenerateLocalKeys.java` | Geração local de chaves RSA de desenvolvimento, sem sobrescrever chaves existentes. |
+| `.env.example` | Nomes e exemplos de configuração; não contém credenciais de produção. |
+| `Dockerfile` | Build da aplicação e imagem JRE de execução. |
+| `.github/workflows/` | Automação de Pull Requests existente. |
+
+## Repositórios relacionados
+
+- [delta-sql-database](https://github.com/delta-app-ofc/delta-sql-database): schema, procedures e demais artefatos PostgreSQL usados pela API.
+- [delta-api-mongo](https://github.com/delta-app-ofc/delta-api-mongo): API de telemetria MongoDB.
+- [delta-business-rules](https://github.com/delta-app-ofc/delta-business-rules): processos determinísticos de consumo, alertas e tarifas.
+- [delta-handbook](https://github.com/delta-app-ofc/delta-handbook): documentação de arquitetura e regras do projeto.
