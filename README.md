@@ -1,4 +1,4 @@
-# Delta · API relacional PostgreSQL
+# Delta Â· API relacional PostgreSQL
 
 ![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.16-6DB33F?logo=springboot&logoColor=white)
@@ -6,58 +6,56 @@
 ![Redis](https://img.shields.io/badge/Redis-refresh%20tokens-DC382D?logo=redis&logoColor=white)
 ![OpenAPI](https://img.shields.io/badge/springdoc-2.8.17-6BA539?logo=swagger&logoColor=white)
 
-A API que protege a conta e conecta pessoas aos seus imóveis, dispositivos, tarifas e dados de consumo. Este serviço Spring Boot concentra autenticação, cadastro e operações relacionais do Delta; PostgreSQL guarda o estado cadastral, e Redis armazena as sessões de refresh token.
+A API PostgreSQL centraliza autenticaÃ§Ã£o, cadastro e operaÃ§Ãµes relacionais do Delta sobre usuÃ¡rios, imÃ³veis, dispositivos, tarifas e consumo. PostgreSQL armazena os dados relacionais e Redis mantÃ©m as sessÃµes de refresh token.
 
-**Tags:** `delta` · `api-rest` · `spring-boot` · `java-17` · `postgresql` · `redis` · `jwt-rs256` · `openapi`
+**Tags:** `delta` Â· `api-rest` Â· `spring-boot` Â· `java-17` Â· `postgresql` Â· `redis` Â· `jwt-rs256` Â· `openapi`
 
-## Sumário
+## SumÃ¡rio
 
-- [Visão geral](#visão-geral)
-- [Arquitetura e módulos](#arquitetura-e-módulos)
-- [Configuração e execução](#configuração-e-execução)
+- [VisÃ£o geral](#visÃ£o-geral)
+- [Arquitetura e mÃ³dulos](#arquitetura-e-mÃ³dulos)
+- [ConfiguraÃ§Ã£o e execuÃ§Ã£o](#configuraÃ§Ã£o-e-execuÃ§Ã£o)
 - [Testes e build de container](#testes-e-build-de-container)
 - [Cadastro mobile em duas chamadas](#cadastro-mobile-em-duas-chamadas)
-- [Banco indisponível por cota do Neon](#banco-indisponível-por-cota-do-neon)
-- [Consulta pública de classificação por e-mail](#consulta-pública-de-classificação-por-e-mail)
-- [Consulta, atualização e exclusão do usuário](#consulta-atualização-e-exclusão-do-usuário)
-- [Testes e validação](#testes-e-validação)
-- [Estrutura do repositório](#estrutura-do-repositório)
-- [Repositórios relacionados](#repositórios-relacionados)
+- [Consulta pÃºblica de classificaÃ§Ã£o por e-mail](#consulta-pÃºblica-de-classificaÃ§Ã£o-por-e-mail)
+- [Consulta, atualizaÃ§Ã£o e exclusÃ£o do usuÃ¡rio](#consulta-atualizaÃ§Ã£o-e-exclusÃ£o-do-usuÃ¡rio)
+- [Estrutura do repositÃ³rio](#estrutura-do-repositÃ³rio)
+- [RepositÃ³rios relacionados](#repositÃ³rios-relacionados)
 
-## Visão geral
+## VisÃ£o geral
 
 | Camada | Responsabilidade |
 |---|---|
-| Autenticação | Cadastro e login, access tokens JWT assinados com RSA, renovação de sessão e controle do próprio perfil. |
-| Dados relacionais | Operações sobre usuários, endereços, imóveis, dispositivos, hábitos, organizações, tarifas e contas de água. |
-| Autorização | Vincula a identidade autenticada às consultas e alterações de dados; respostas de erro usam um formato comum. |
-| Sessões | Usa Redis para refresh tokens; a conexão é configurável por ambiente. |
-| Analytics | Expõe consultas de consumo, custo, rankings, variação e auditoria, respeitando os escopos implementados. |
-| Documentação | Expõe Swagger UI e especificação OpenAPI. |
+| AutenticaÃ§Ã£o | Cadastro e login, access tokens JWT assinados com RSA, renovaÃ§Ã£o de sessÃ£o e controle do prÃ³prio perfil. |
+| Dados relacionais | OperaÃ§Ãµes sobre usuÃ¡rios, endereÃ§os, imÃ³veis, dispositivos, hÃ¡bitos, organizaÃ§Ãµes, tarifas e contas de Ã¡gua. |
+| AutorizaÃ§Ã£o | Vincula a identidade autenticada Ã s consultas e alteraÃ§Ãµes de dados; respostas de erro usam um formato comum. |
+| SessÃµes | Usa Redis para refresh tokens; a conexÃ£o Ã© configurÃ¡vel por ambiente. |
+| Analytics | Consultas de consumo, custo, rankings, variaÃ§Ã£o e auditoria. |
+| DocumentaÃ§Ã£o | ExpÃµe Swagger UI e especificaÃ§Ã£o OpenAPI. |
 
-O schema PostgreSQL não é criado pelo Hibernate (`ddl-auto=none`). Prepare as tabelas e rotinas necessárias a partir do repositório [delta-sql-database](https://github.com/delta-app-ofc/delta-sql-database) antes de conectar a API. A configuração local não provisiona PostgreSQL ou Redis.
+A API usa o schema PostgreSQL definido em [delta-sql-database](https://github.com/delta-app-ofc/delta-sql-database); o Hibernate estÃ¡ configurado com `ddl-auto=none`. PostgreSQL e Redis sÃ£o dependÃªncias externas e devem estar acessÃ­veis Ã  aplicaÃ§Ã£o.
 
-## Arquitetura e módulos
+## Arquitetura e mÃ³dulos
 
-A aplicação organiza os endpoints por módulos em `src/main/java/br/com/delta/delta_api_postgres/modules/`. Cada módulo mantém controllers, serviços, entidades, repositórios, DTOs, mapeadores e anotações OpenAPI conforme necessário.
+A aplicaÃ§Ã£o organiza os endpoints por mÃ³dulos em `src/main/java/br/com/delta/delta_api_postgres/modules/`. Cada mÃ³dulo mantÃ©m controllers, serviÃ§os, entidades, repositÃ³rios, DTOs, mapeadores e anotaÃ§Ãµes OpenAPI conforme necessÃ¡rio.
 
-| Módulo | Domínio |
+| MÃ³dulo | DomÃ­nio |
 |---|---|
-| `auth` | Cadastro, login, refresh token, perfil e autorização JWT. |
-| `address`, `property`, `user_property` | Endereços, imóveis e vínculos entre usuários e imóveis. |
-| `device`, `last_water_bill`, `habit` | Dispositivos, contas de água e hábitos de consumo. |
-| `organization`, `region_rate` | Organizações, regiões e tarifas. |
-| `analytics` | Consultas analíticas e rankings expostos pela API. |
-| `common` | Saúde, configuração OpenAPI, tratamento de erros e serviços compartilhados. |
+| `auth` | Cadastro, login, refresh token, perfil e autorizaÃ§Ã£o JWT. |
+| `address`, `property`, `user_property` | EndereÃ§os, imÃ³veis e vÃ­nculos entre usuÃ¡rios e imÃ³veis. |
+| `device`, `last_water_bill`, `habit` | Dispositivos, contas de Ã¡gua e hÃ¡bitos de consumo. |
+| `organization`, `region_rate` | OrganizaÃ§Ãµes, regiÃµes e tarifas. |
+| `analytics` | Consultas analÃ­ticas e rankings expostos pela API. |
+| `common` | SaÃºde, configuraÃ§Ã£o OpenAPI, tratamento de erros e serviÃ§os compartilhados. |
 
-O endpoint `GET /health` verifica PostgreSQL e Redis. Swagger UI fica em `/swagger-ui.html` e o JSON OpenAPI em `/v3/api-docs`. O servidor local usa a porta padrão do Spring Boot, `8080`; o Dockerfile configura a imagem de execução para a porta `10000`, ajustável por `PORT`.
+O endpoint `GET /health` verifica PostgreSQL e Redis. Swagger UI fica em `/swagger-ui.html` e o JSON OpenAPI em `/v3/api-docs`. O servidor local usa a porta padrÃ£o do Spring Boot, `8080`; o Dockerfile configura a imagem de execuÃ§Ã£o para a porta `10000`, ajustÃ¡vel por `PORT`.
 
-## Configuração e execução
+## ConfiguraÃ§Ã£o e execuÃ§Ã£o
 
-Requisitos: Java 17 e o Maven Wrapper versionado neste repositório. Para execução funcional também são necessários um PostgreSQL com o schema Delta já instalado e um Redis acessível. A aplicação lê `.env` no desenvolvimento local.
+Requisitos: Java 17 e o Maven Wrapper versionado neste repositÃ³rio. Para execuÃ§Ã£o funcional tambÃ©m sÃ£o necessÃ¡rios um PostgreSQL com o schema Delta jÃ¡ instalado e um Redis acessÃ­vel. A aplicaÃ§Ã£o lÃª `.env` no desenvolvimento local.
 
-1. Copie `.env.example` para `.env` e configure `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e a conexão Redis conforme seu ambiente. O arquivo de exemplo contém valores ilustrativos; não versione credenciais reais.
-2. Na primeira execução local, gere um par RSA de desenvolvimento. O utilitário não sobrescreve arquivos existentes; as chaves ficam em `.local/`, ignorada pelo Git.
+1. Copie `.env.example` para `.env` e configure `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e a conexÃ£o Redis conforme seu ambiente. O arquivo de exemplo contÃ©m valores ilustrativos; nÃ£o versione credenciais reais.
+2. Na primeira execuÃ§Ã£o local, gere um par RSA de desenvolvimento. O utilitÃ¡rio nÃ£o sobrescreve arquivos existentes; as chaves ficam em `.local/`, ignorada pelo Git.
 
 Linux/macOS:
 
@@ -79,7 +77,7 @@ java -cp .local GenerateLocalKeys
 .\mvnw.cmd spring-boot:run
 ~~~
 
-A configuração JWT permite ajustar emissor, audiência, identificador da chave, origens CORS, limite de tentativas e validade do refresh token. O modo TLS do Redis também é configurável; confira [`.env.example`](.env.example) e `src/main/resources/application.properties` para todos os nomes e padrões.
+A configuraÃ§Ã£o JWT permite ajustar emissor, audiÃªncia, identificador da chave, origens CORS, limite de tentativas e validade do refresh token. O modo TLS do Redis tambÃ©m Ã© configurÃ¡vel; confira [`.env.example`](.env.example) e `src/main/resources/application.properties` para todos os nomes e padrÃµes.
 
 ## Testes e build de container
 
@@ -89,9 +87,9 @@ Execute os testes com o Maven Wrapper:
 ./mvnw test
 ~~~
 
-No Windows PowerShell, use `.\mvnw.cmd test`. Os testes configuram H2 em memória no modo PostgreSQL e simulam o Redis quando necessário; eles não substituem validação das procedures, triggers e restrições no PostgreSQL real.
+No Windows PowerShell, use `.\mvnw.cmd test`. A suÃ­te usa H2 em memÃ³ria no modo PostgreSQL e simula o Redis.
 
-O Dockerfile constrói uma imagem de execução que escuta na porta `10000` por padrão. O estágio de build usa `-DskipTests`, então rode a suíte separadamente antes de gerar a imagem:
+O Dockerfile gera a imagem de execuÃ§Ã£o na porta `10000` por padrÃ£o. Para criar a imagem:
 
 ~~~bash
 docker build -t delta-api-postgres:local .
@@ -99,7 +97,7 @@ docker build -t delta-api-postgres:local .
 
 ## Cadastro mobile em duas chamadas
 
-1. `POST /delta/auth/create-account` (público, com limite de tentativas): recebe os dados das duas primeiras telas e retorna `accessToken`, `refreshToken` e seus prazos.
+1. `POST /delta/auth/create-account` (pÃºblico, com limite de tentativas): recebe os dados das duas primeiras telas e retorna `accessToken`, `refreshToken` e seus prazos.
 
 ```json
 {
@@ -111,11 +109,11 @@ docker build -t delta-api-postgres:local .
 }
 ```
 
-2. `POST /delta/auth/complete-registration`, com `Authorization: Bearer <accessToken>`, recebe o complemento. Aguarde o sucesso da primeira chamada antes de enviar a segunda. O usuário vem exclusivamente do token; não envie `userId` ou `addressId`.
+2. `POST /delta/auth/complete-registration`, com `Authorization: Bearer <accessToken>`, recebe o complemento. Aguarde o sucesso da primeira chamada antes de enviar a segunda. O usuÃ¡rio vem exclusivamente do token; nÃ£o envie `userId` ou `addressId`.
 
 ```json
 {
-  "address": { "regionId": 1, "cep": "01001000", "city": "São Paulo", "state": "SP" },
+  "address": { "regionId": 1, "cep": "01001000", "city": "SÃ£o Paulo", "state": "SP" },
   "property": {
     "name": "Casa principal",
     "type": "CASA",
@@ -127,49 +125,39 @@ docker build -t delta-api-postgres:local .
 }
 ```
 
-Os IDs de região, hábito e dias devem existir no banco; os números acima são exemplos. A consulta de CEP no aplicativo fornece cidade e estado, mas também é necessário enviar a região cadastrada. `habits` pode ser uma lista vazia. Nome, tipo e classificação do imóvel são obrigatórios; organização e área são opcionais.
+Os IDs de regiÃ£o, hÃ¡bito e dias devem existir no banco; os nÃºmeros acima sÃ£o exemplos. A consulta de CEP no aplicativo fornece cidade e estado, mas tambÃ©m Ã© necessÃ¡rio enviar a regiÃ£o cadastrada. `habits` pode ser uma lista vazia. Nome, tipo e classificaÃ§Ã£o do imÃ³vel sÃ£o obrigatÃ³rios; organizaÃ§Ã£o e Ã¡rea sÃ£o opcionais.
 
-A segunda chamada responde `200` com `userId`, `completed: true`, `address`, `property` e `habits`, somente depois do commit. Endereço, imóvel, associação e hábitos são gravados numa transação. A conta criada na primeira chamada permanece caso o complemento falhe.
+A segunda chamada responde `200` com `userId`, `completed: true`, `address`, `property` e `habits`, somente depois do commit. EndereÃ§o, imÃ³vel, associaÃ§Ã£o e hÃ¡bitos sÃ£o gravados numa transaÃ§Ã£o. A conta criada na primeira chamada permanece caso o complemento falhe.
 
-Reenvios com os mesmos dados persistidos retornam os registros existentes. Um bloqueio no usuário serializa as chamadas concorrentes dessa rota. Se o usuário já tiver imóvel ou hábitos diferentes, a rota responde `409`; alterações posteriores devem usar as rotas específicas. Isso não é um recibo permanente de idempotência: se os dados forem alterados depois, reenviar o cadastro antigo pode resultar em conflito.
+Chamadas repetidas com os mesmos dados retornam os registros existentes, e a rota serializa solicitaÃ§Ãµes simultÃ¢neas para o mesmo usuÃ¡rio. ImÃ³veis ou hÃ¡bitos diferentes geram `409`; atualize esses dados pelas rotas especÃ­ficas.
 
-A criação do imóvel utiliza a procedure existente `sp_register_property`; ela deve estar instalada no PostgreSQL e participar da transação, sem commit interno. A orquestração garante a associação com o usuário caso a procedure ainda não a crie. Não há chamadas HTTP internas para os controllers.
+O cadastro do imÃ³vel chama a procedure `sp_register_property` na mesma transaÃ§Ã£o que cria endereÃ§o, imÃ³vel, associaÃ§Ã£o e hÃ¡bitos.
 
-## Banco indisponível por cota do Neon
+## Consulta pÃºblica de classificaÃ§Ã£o por e-mail
 
-O erro PostgreSQL `53000` com a mensagem `Your account or project has exceeded the quota` significa que o provedor recusou a conexão por uma cota da conta ou do projeto. O Hikari tenta conectar e o Hibernate não consegue abrir a transação. A mensagem não identifica qual cota foi excedida.
-
-No [painel do Neon](https://console.neon.tech), verifique o Usage do projeto e Billing da organização para identificar o limite e o período de consumo. A recuperação depende da cota: disponibilizar capacidade no plano, aguardar a renovação do período quando aplicável ou contatar o suporte em caso de divergência. Reiniciar a API ou alterar a senha não remove o bloqueio. Não é necessário recriar ou apagar tabelas.
-
-A API responde `503` com `Banco de dados indisponível. Tente novamente mais tarde.` para falhas de abertura da transação ou indisponibilidade de conexão que chegam aos controllers. O endpoint `/health` também retorna `503` quando as dependências estão indisponíveis. Isso informa a falha ao cliente, mas não libera a cota do provedor.
-
-O pool mantém zero conexões mínimas ociosas, encerra conexões ociosas após aproximadamente um minuto, desabilita keepalive e limita a cinco conexões por instância (`DB_POOL_MAX_SIZE` ajustável). Esses ajustes reduzem conexões e consultas de manutenção desnecessárias; não corrigem uma cota já esgotada. Monitores que consultam `/health` com frequência acessam PostgreSQL e Redis e podem manter o compute ativo. Revise a frequência desses monitores no ambiente de hospedagem. Reinicie a aplicação após atualizar a configuração.
-
-## Consulta pública de classificação por e-mail
-
-`GET /delta/auth/classification?email=davi%40example.com` dispensa autenticação e retorna somente:
+`GET /delta/auth/classification?email=davi%40example.com` dispensa autenticaÃ§Ã£o e retorna somente:
 
 ```json
 { "classificationGroup": "RESIDENCIAL" }
 ```
 
-O valor pode ser `RESIDENCIAL` ou `COMERCIAL` e vem do grupo de classificação dos imóveis vinculados ao usuário ativo, não do tipo CASA/PRÉDIO. O e-mail é obrigatório, validado e normalizado para minúsculas sem espaços externos. A resposta usa `Cache-Control: no-store`.
+O valor pode ser `RESIDENCIAL` ou `COMERCIAL` e vem do grupo de classificaÃ§Ã£o dos imÃ³veis vinculados ao usuÃ¡rio ativo, nÃ£o do tipo CASA/PRÃ‰DIO. O e-mail Ã© obrigatÃ³rio, validado e normalizado para minÃºsculas sem espaÃ§os externos. A resposta usa `Cache-Control: no-store`.
 
-Retorna `400` para e-mail ausente/inválido, `404` para usuário inexistente, inativo ou sem imóvel vinculado e `409` quando há imóveis dos dois grupos. Vários imóveis do mesmo grupo retornam uma única classificação.
+Retorna `400` para e-mail ausente/invÃ¡lido, `404` para usuÃ¡rio inexistente, inativo ou sem imÃ³vel vinculado e `409` quando hÃ¡ imÃ³veis dos dois grupos. VÃ¡rios imÃ³veis do mesmo grupo retornam uma Ãºnica classificaÃ§Ã£o.
 
-## Consulta, atualização e exclusão do usuário
+## Consulta, atualizaÃ§Ã£o e exclusÃ£o do usuÃ¡rio
 
-Todas as rotas abaixo exigem `Authorization: Bearer <accessToken>`. O titular do perfil vem do token; IDs de usuário recebidos nas rotas legadas ou no corpo devem corresponder ao mesmo usuário.
+As rotas abaixo usam `Authorization: Bearer <accessToken>`. A API identifica o titular do perfil pelo token da sessÃ£o.
 
-| Método e rota | Comportamento |
+| MÃ©todo e rota | Comportamento |
 | --- | --- |
 | `GET /delta/auth/me` | Retorna `id`, `name`, `email`, `phone` e `birthDate`, inclusive para cadastro ainda incompleto. |
 | `PUT /delta/auth/me` | Atualiza nome, e-mail, telefone e nascimento; retorna o perfil atualizado. |
 | `DELETE /delta/auth/me` | Desativa a conta (`is_active = false`), com resposta `204`. |
-| `GET /delta/address`, `/delta/property`, `/delta/device`, `/delta/last-water-bills` | Lista somente registros ligados ao usuário do token. |
-| `GET`, `PUT`, `DELETE` nas rotas anteriores com `/{id}` | Consulta, altera ou exclui o registro após verificar titularidade e dependências. |
-| `GET /delta/habits/{userId}` e `/delta/user-properties/{userId}` | Lista hábitos e vínculos do próprio usuário. GET, PUT e DELETE com `/{id}` gerenciam um registro específico. |
-| `GET /delta/organizations` e `/{id}` | Consulta apenas organizações relacionadas aos imóveis do usuário. |
+| `GET /delta/address`, `/delta/property`, `/delta/device`, `/delta/last-water-bills` | Lista os registros do usuÃ¡rio autenticado. |
+| `GET`, `PUT`, `DELETE` nas rotas anteriores com `/{id}` | Consulta, altera ou exclui o registro apÃ³s verificar titularidade e dependÃªncias. |
+| `GET /delta/habits/{userId}` e `/delta/user-properties/{userId}` | Lista hÃ¡bitos e vÃ­nculos do prÃ³prio usuÃ¡rio. GET, PUT e DELETE com `/{id}` gerenciam um registro especÃ­fico. |
+| `GET /delta/organizations` e `/{id}` | Consulta organizaÃ§Ãµes relacionadas aos imÃ³veis do usuÃ¡rio. |
 
 Exemplo de PUT completo do perfil:
 
@@ -182,44 +170,38 @@ Exemplo de PUT completo do perfil:
 }
 ```
 
-Nome, e-mail e nascimento são obrigatórios no PUT; `phone: null` (ou vazio) limpa o telefone. Nome aceita até 100 caracteres, e-mail até 255, telefone até 15 e nascimento deve ser anterior à data atual. Nome e telefone têm espaços externos removidos; e-mail é normalizado para minúsculas e deve continuar único. Senha, ID e estado de ativação não são campos editáveis do perfil. Hash e tokens não aparecem nas respostas. GET e PUT retornam `200`, com `Cache-Control: no-store`.
+Nome, e-mail e nascimento sÃ£o obrigatÃ³rios no PUT; `phone: null` (ou vazio) limpa o telefone. Nome aceita atÃ© 100 caracteres, e-mail atÃ© 255, telefone atÃ© 15 e nascimento deve ser anterior Ã  data atual. Nome e telefone tÃªm espaÃ§os externos removidos; e-mail Ã© normalizado para minÃºsculas e deve continuar Ãºnico. Senha, ID e estado de ativaÃ§Ã£o nÃ£o sÃ£o campos editÃ¡veis do perfil. Hash e tokens nÃ£o aparecem nas respostas. GET e PUT retornam `200`, com `Cache-Control: no-store`.
 
-DELETE do perfil é **exclusão lógica**: conserva dados pessoais, hábitos, contas, vínculos e recursos compartilhados. Não equivale a apagar ou anonimizar dados. Login, access tokens e refresh tokens anteriores deixam de ser aceitos porque a autenticação verifica a conta ativa no PostgreSQL. As chaves de refresh no Redis expiram pelo TTL existente; a desativação não depende de limpeza do Redis e não há reativação pública da conta. O e-mail continua reservado.
+DELETE desativa a conta (`is_active = false`) e preserva dados pessoais, hÃ¡bitos, contas, vÃ­nculos e recursos compartilhados. A autenticaÃ§Ã£o verifica o estado ativo no PostgreSQL; os refresh tokens armazenados no Redis seguem seu TTL, e o e-mail permanece reservado.
 
-Endereços pertencem aos imóveis, por meio dos vínculos de `tb_user_property`, e não diretamente ao usuário. O endereço atual suporta `regionId`, `cep`, `city`, `state`, `latitude` e `longitude` (as duas últimas são obrigatórias). Rua, número, bairro e complemento exigiriam alteração do schema e não são aceitos como campos persistidos. O POST de endereço legado cria um registro sem titularidade comprovável, pois a tabela não possui vínculo direto de proprietário. Esses registros não podem ser consultados nem adotados por simples conhecimento do ID. O CRUD público de imóvel só reutiliza endereços já vinculados exclusivamente ao usuário. Para o primeiro endereço/imóvel, use `complete-registration`, que cria ambos e garante o vínculo na mesma transação. O fluxo legado POST de endereço seguido de POST de imóvel com ID solto não é suportado pelas regras de titularidade; permitir esse fluxo exige persistir a autoria do endereço no schema.
+EndereÃ§os sÃ£o associados aos imÃ³veis por `tb_user_property`. O cadastro inicial usa `complete-registration`, que cria o endereÃ§o, o imÃ³vel e o vÃ­nculo numa transaÃ§Ã£o. Os campos do endereÃ§o sÃ£o `regionId`, `cep`, `city`, `state`, `latitude` e `longitude`.
 
-Imóveis, endereços e dispositivos compartilhados podem ser consultados pelos usuários vinculados. Alterações e exclusões que afetem outro usuário retornam `409`, pois o modelo atual não define papéis de administrador. DELETE de vínculo remove somente o vínculo do solicitante. A associação arbitrária a imóvel alheio é recusada; o CRUD de vínculos não funciona como convite ou transferência de propriedade. A criação inicial do vínculo ocorre no cadastro do imóvel.
+UsuÃ¡rios vinculados a um imÃ³vel consultam os dados compartilhados. AlteraÃ§Ãµes que afetem outro usuÃ¡rio retornam `409`. A exclusÃ£o de vÃ­nculo remove a associaÃ§Ã£o do solicitante; a associaÃ§Ã£o inicial Ã© criada junto com o imÃ³vel.
 
-Endereço ainda referenciado por imóvel retorna `409` no DELETE. Imóvel com dispositivos precisa ter os dispositivos removidos antes da exclusão; ao excluir um imóvel exclusivo sem dispositivos, seus vínculos são removidos na mesma transação. O endereço é preservado. DELETE de dispositivo remove o cadastro SQL, sem apagar telemetria externa; `deviceId` continua imutável. Hábitos e contas só podem ser alterados/excluídos pelo próprio titular, sem transferência de usuário.
+A exclusÃ£o de endereÃ§o retorna `409` enquanto houver imÃ³vel associado. Para excluir um imÃ³vel, remova primeiro seus dispositivos; quando o imÃ³vel exclusivo nÃ£o tiver dispositivos, a API remove seus vÃ­nculos na mesma transaÃ§Ã£o e preserva o endereÃ§o. A exclusÃ£o de dispositivo remove o cadastro SQL, e `deviceId` permanece imutÃ¡vel. HÃ¡bitos e contas de Ã¡gua sÃ£o gerenciados pelo prÃ³prio titular.
 
-Organizações são dados compartilhados sem regra de administração no modelo atual. POST, PUT e DELETE de organização retornam `403` até existir uma política de gestão. Catálogos de regiões, tarifas, classificações, hábitos-base e dias não são removidos junto ao usuário.
+A API lista organizaÃ§Ãµes relacionadas aos imÃ³veis do usuÃ¡rio. Os catÃ¡logos de regiÃµes, tarifas, classificaÃ§Ãµes, hÃ¡bitos e dias sÃ£o compartilhados pelo sistema.
 
-Analytics por imóvel e custo de água validam o vínculo; ranking residencial valida o usuário e ranking de imóveis filtra os imóveis do titular. A distribuição global de consumo usa uma chave de DW sem mapeamento comprovado para o imóvel SQL, e o histórico global de auditoria expõe outros executores; essas duas consultas retornam `403` até existir um escopo seguro. Comparação de cenários de investimento continua disponível como referência não vinculada ao perfil.
+As consultas de imÃ³vel e custo de Ã¡gua verificam o vÃ­nculo com o usuÃ¡rio. Os rankings residenciais e de imÃ³veis usam o perfil autenticado para selecionar os resultados. A comparaÃ§Ã£o de cenÃ¡rios de investimento tambÃ©m estÃ¡ disponÃ­vel na Ã¡rea de analytics.
 
-Erros seguem `ErrorResponse`: `400` para dados inválidos, `401` para sessão ausente/inválida ou conta inativa, `403` para tentativa explícita de usar outro usuário ou operação sem permissão, `404` para registro inexistente/fora do escopo e `409` para duplicidade, compartilhamento ou dependência de exclusão.
+Erros seguem `ErrorResponse`: `400` para dados invÃ¡lidos, `401` para sessÃ£o ausente/invÃ¡lida ou conta inativa, `403` para tentativa explÃ­cita de usar outro usuÃ¡rio ou operaÃ§Ã£o sem permissÃ£o, `404` para registro inexistente/fora do escopo e `409` para duplicidade, compartilhamento ou dependÃªncia de exclusÃ£o.
 
-### Testes e validação
+## Estrutura do repositÃ³rio
 
-Execute `./mvnw.cmd test` no Windows. Os testes de integração usam H2, JWT assinado e Redis simulado; cobrem perfil, desativação, isolamento entre usuários, recursos compartilhados e dependências. Procedures, triggers, FKs adicionais e concorrência específica do PostgreSQL precisam ser validados em um banco de testes com o schema real antes de produção.
-
-O último resultado registrado antes desta revisão foi de 137 testes aprovados, incluindo 21 cenários novos de perfil e autorização. Naquele registro, 10 testes HTTP de dispositivos não iniciaram por falha de loopback do Java (`Unable to establish loopback connection`); a suíte completa ainda precisava ser repetida em ambiente com sockets locais funcionais. Este é um registro histórico do README, não uma execução realizada nesta atualização. Nenhum teste foi desabilitado.
-
-## Estrutura do repositório
-
-| Caminho | Conteúdo |
+| Caminho | ConteÃºdo |
 |---|---|
-| `src/main/java/.../modules/` | Módulos HTTP, regras da aplicação, entidades e repositórios. |
-| `src/main/java/.../common/` | Configuração de segurança/OpenAPI, health check, erros e serviços comuns. |
-| `src/main/resources/application.properties` | Configuração do datasource, JWT, Redis e documentação HTTP. |
-| `src/test/java/` e `src/test/resources/` | Testes automatizados com configuração H2 isolada. |
-| `scripts/GenerateLocalKeys.java` | Geração local de chaves RSA de desenvolvimento, sem sobrescrever chaves existentes. |
-| `.env.example` | Nomes e exemplos de configuração; não contém credenciais de produção. |
-| `Dockerfile` | Build da aplicação e imagem JRE de execução. |
-| `.github/workflows/` | Automação de Pull Requests existente. |
+| `src/main/java/.../modules/` | MÃ³dulos HTTP, regras da aplicaÃ§Ã£o, entidades e repositÃ³rios. |
+| `src/main/java/.../common/` | ConfiguraÃ§Ã£o de seguranÃ§a/OpenAPI, health check, erros e serviÃ§os comuns. |
+| `src/main/resources/application.properties` | ConfiguraÃ§Ã£o do datasource, JWT, Redis e documentaÃ§Ã£o HTTP. |
+| `src/test/java/` e `src/test/resources/` | Testes automatizados com configuraÃ§Ã£o H2 isolada. |
+| `scripts/GenerateLocalKeys.java` | GeraÃ§Ã£o local de chaves RSA de desenvolvimento, sem sobrescrever chaves existentes. |
+| `.env.example` | Nomes e exemplos de configuraÃ§Ã£o; nÃ£o contÃ©m credenciais de produÃ§Ã£o. |
+| `Dockerfile` | Build da aplicaÃ§Ã£o e imagem JRE de execuÃ§Ã£o. |
+| `.github/workflows/` | AutomaÃ§Ã£o de Pull Requests existente. |
 
-## Repositórios relacionados
+## RepositÃ³rios relacionados
 
 - [delta-sql-database](https://github.com/delta-app-ofc/delta-sql-database): schema, procedures e demais artefatos PostgreSQL usados pela API.
 - [delta-api-mongo](https://github.com/delta-app-ofc/delta-api-mongo): API de telemetria MongoDB.
-- [delta-business-rules](https://github.com/delta-app-ofc/delta-business-rules): processos determinísticos de consumo, alertas e tarifas.
-- [delta-handbook](https://github.com/delta-app-ofc/delta-handbook): documentação de arquitetura e regras do projeto.
+- [delta-business-rules](https://github.com/delta-app-ofc/delta-business-rules): processos determinÃ­sticos de consumo, alertas e tarifas.
+- [delta-handbook](https://github.com/delta-app-ofc/delta-handbook): documentaÃ§Ã£o de arquitetura e regras do projeto.
