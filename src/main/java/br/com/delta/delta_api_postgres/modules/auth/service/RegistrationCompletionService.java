@@ -7,6 +7,8 @@ import br.com.delta.delta_api_postgres.modules.address.dto.io.AddressIO;
 import br.com.delta.delta_api_postgres.modules.address.service.AddressService;
 import br.com.delta.delta_api_postgres.modules.habit.dto.io.UserHabitIO;
 import br.com.delta.delta_api_postgres.modules.habit.service.UserHabitService;
+import br.com.delta.delta_api_postgres.modules.organization.mapper.OrganizationMapper;
+import br.com.delta.delta_api_postgres.modules.organization.service.OrganizationService;
 import br.com.delta.delta_api_postgres.modules.property.dto.io.PropertyIO;
 import br.com.delta.delta_api_postgres.modules.property.service.PropertyService;
 import br.com.delta.delta_api_postgres.modules.user_property.dto.io.UserPropertyIO;
@@ -25,6 +27,8 @@ public class RegistrationCompletionService {
     private final PropertyService properties;
     private final UserPropertyService associations;
     private final UserHabitService habits;
+    private final OrganizationService organizations;
+    private final OrganizationMapper organizationMapper;
 
     public record Result(Integer userId, boolean completed, AddressIO address,
                          PropertyIO property, List<UserHabitIO> habits) {}
@@ -34,6 +38,8 @@ public class RegistrationCompletionService {
         // Serialize completion/retries for this account, including concurrent mobile requests.
         users.lockById(userId).filter(user -> user.isEnabled())
                 .orElseThrow(() -> new AccessDeniedException("Usuário inativo ou inexistente."));
+        if (request.organization() != null && request.property().organizationId() != null)
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Informe a organização existente ou os dados da nova, não os dois.");
         Set<Integer> habitIds = new HashSet<>();
         for (var habit : request.habits()) {
             if (!habitIds.add(habit.habitId()) || habit.frequency() <= 0
@@ -60,8 +66,14 @@ public class RegistrationCompletionService {
         var address = addresses.create(new AddressIO(null, null, a.cep(), a.city(), a.state(),
                 a.latitude(), a.longitude()));
         var p = request.property();
-        var property = properties.create(userId, new PropertyIO(null, p.name(), p.type(),
-                p.classification(), address.id(), p.organizationId(), p.builtAreaM2(), null));
+        Integer organizationId = p.organizationId();
+        if (request.organization() != null)
+            organizationId = organizations.createForRegistration(organizationMapper.fromCreateRequest(request.organization())).id();
+        var propertyData = new PropertyIO(null, p.name(), p.type(),
+                p.classification(), address.id(), organizationId, p.builtAreaM2(), null);
+        var property = request.organization() != null
+                ? properties.createForNewOrganization(userId, propertyData)
+                : properties.create(userId, propertyData);
         // The existing procedure may already create the association.
         if (associations.findAll(userId).stream().noneMatch(link -> link.propertyId().equals(property.id())))
             associations.create(new UserPropertyIO(null, userId, property.id(), null, null));
@@ -69,6 +81,13 @@ public class RegistrationCompletionService {
                 null, userId, h.habitId(), null, null, null, h.frequency(),
                 h.startTime(), h.endTime(), h.estimatedLiters(), h.daysOfWeek()))).toList();
         return new Result(userId, true, address, property, savedHabits);
+    }
+
+    // Reenvio idêntico: com organização nova, compara pelo CNPJ da organização já gravada na instalação.
+    private boolean sameOrganization(CompleteRegistrationRequest request, PropertyIO saved) {
+        if (request.organization() == null) return Objects.equals(request.property().organizationId(), saved.organizationId());
+        return saved.organizationId() != null
+                && request.organization().cnpj().equals(organizations.findById(saved.organizationId()).cnpj());
     }
 
     private boolean matches(CompleteRegistrationRequest request, AddressIO a, PropertyIO p,
@@ -79,7 +98,7 @@ public class RegistrationCompletionService {
                 && Objects.equals(address.city(), a.city()) && Objects.equals(address.state(), a.state())
                 && Objects.equals(property.name(), p.name()) && property.type() == p.type()
                 && property.classification() == p.classification()
-                && Objects.equals(property.organizationId(), p.organizationId())
+                && sameOrganization(request, p)
                 && (property.builtAreaM2() == null ? p.builtAreaM2() == null
                     : p.builtAreaM2() != null && property.builtAreaM2().compareTo(p.builtAreaM2()) == 0)
                 && request.habits().size() == savedHabits.size()

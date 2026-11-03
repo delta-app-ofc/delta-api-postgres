@@ -30,6 +30,8 @@ class RegistrationCompletionServiceTest {
     @Mock PropertyService properties;
     @Mock UserPropertyService associations;
     @Mock UserHabitService habits;
+    @Mock br.com.delta.delta_api_postgres.modules.organization.service.OrganizationService organizations;
+    @Mock br.com.delta.delta_api_postgres.modules.organization.mapper.OrganizationMapper organizationMapper;
     @InjectMocks RegistrationCompletionService service;
     CompleteRegistrationRequest request;
     AddressIO address;
@@ -58,6 +60,60 @@ class RegistrationCompletionServiceTest {
         assertThat(result.completed()).isTrue();
         verify(associations).create(new UserPropertyIO(null, 7, 20, null, null));
         verify(habits).create(new UserHabitIO(null, 7, 2, null, null, null, 3, java.time.LocalTime.of(7, 0), java.time.LocalTime.of(7, 20), new java.math.BigDecimal("45.00"), List.of(1, 3)));
+    }
+
+    private br.com.delta.delta_api_postgres.modules.organization.dto.request.CreateOrganizationRequest newOrganization() {
+        return new br.com.delta.delta_api_postgres.modules.organization.dto.request.CreateOrganizationRequest(
+                "Nova Empresa Ltda", "Nova", "12345678000199",
+                br.com.delta.delta_api_postgres.modules.organization.enums.OrganizationSegment.INDUSTRIA, 1);
+    }
+
+    private br.com.delta.delta_api_postgres.modules.organization.dto.io.OrganizationIO organizationIO() {
+        return new br.com.delta.delta_api_postgres.modules.organization.dto.io.OrganizationIO(
+                5, "Nova Empresa Ltda", "Nova", "12345678000199",
+                br.com.delta.delta_api_postgres.modules.organization.enums.OrganizationSegment.INDUSTRIA, 1, null);
+    }
+
+    @Test void createsTheOrganizationAndThePropertyTogetherWhenNewDataIsSent() {
+        var withOrganization = new CompleteRegistrationRequest(request.address(), request.property(), request.habits(), newOrganization());
+        var io = organizationIO();
+        when(organizationMapper.fromCreateRequest(withOrganization.organization())).thenReturn(io);
+        when(organizations.createForRegistration(io)).thenReturn(io);
+        when(addresses.create(any())).thenReturn(address);
+        var linked = new PropertyIO(20, "Casa", PropertyType.CASA, PropertyClassification.RESIDENCIAL_NORMAL, 10, 5, null, null);
+        when(properties.createForNewOrganization(eq(7), any())).thenReturn(linked);
+        when(habits.create(any())).thenReturn(habit);
+
+        var result = service.complete(7, withOrganization);
+
+        assertThat(result.property().organizationId()).isEqualTo(5);
+        var created = ArgumentCaptor.forClass(PropertyIO.class);
+        verify(properties).createForNewOrganization(eq(7), created.capture());
+        assertThat(created.getValue().organizationId()).isEqualTo(5);
+        verify(properties, never()).create(any(), any());
+    }
+
+    @Test void rejectsExistingAndNewOrganizationTogetherBeforeWriting() {
+        var both = new CompleteRegistrationRequest(request.address(),
+                new CompleteRegistrationRequest.PropertyDetails("Casa", PropertyType.CASA, PropertyClassification.RESIDENCIAL_NORMAL, 3, null),
+                request.habits(), newOrganization());
+        assertThatThrownBy(() -> service.complete(7, both))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+        verifyNoInteractions(addresses, properties, associations, habits, organizations);
+    }
+
+    @Test void identicalRetryWithANewOrganizationComparesByCnpj() {
+        var withOrganization = new CompleteRegistrationRequest(request.address(), request.property(), request.habits(), newOrganization());
+        var linked = new PropertyIO(20, "Casa", PropertyType.CASA, PropertyClassification.RESIDENCIAL_NORMAL, 10, 5, null, null);
+        when(associations.findAll(7)).thenReturn(List.of(new UserPropertyIO(1, 7, 20, "Casa", null)));
+        when(properties.findById(20)).thenReturn(linked);
+        when(addresses.findById(10)).thenReturn(address);
+        when(habits.findAll(7)).thenReturn(List.of(habit));
+        when(organizations.findById(5)).thenReturn(organizationIO());
+
+        assertThat(service.complete(7, withOrganization).property().id()).isEqualTo(20);
+        verify(organizations, never()).createForRegistration(any());
+        verify(properties, never()).createForNewOrganization(any(), any());
     }
 
     @Test void identicalRetryDoesNotWriteAnything() {

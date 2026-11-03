@@ -49,6 +49,30 @@ class OrganizationServiceTest {
     private OrganizationService organizationService;
 
     @Test
+    void createForRegistration_savesWithoutTheStandaloneCreationDenial() {
+        OrganizationIO input = inputOrganizationIO();
+        Organization organization = organization(null);
+        Organization saved = organization(ORGANIZATION_ID);
+        when(organizationRepository.existsByCnpj(CNPJ)).thenReturn(false);
+        when(organizationMapper.toEntity(input)).thenReturn(organization);
+        when(organizationRepository.save(organization)).thenReturn(saved);
+        when(organizationMapper.toIO(saved)).thenReturn(savedOrganizationIO());
+
+        assertThat(organizationService.createForRegistration(input).id()).isEqualTo(ORGANIZATION_ID);
+        verify(access, never()).denyOrganizationMutation();
+    }
+
+    @Test
+    void createForRegistration_whenCnpjAlreadyExists_throwsAndDoesNotSave() {
+        OrganizationIO input = inputOrganizationIO();
+        when(organizationRepository.existsByCnpj(CNPJ)).thenReturn(true);
+
+        assertThatThrownBy(() -> organizationService.createForRegistration(input))
+                .isInstanceOf(ResourceAlreadyExistsException.class);
+        verify(organizationRepository, never()).save(any());
+    }
+
+    @Test
     void create_whenValidData_savesAndReturnsOrganization() {
         OrganizationIO input = inputOrganizationIO();
         Organization organization = organization(null);
