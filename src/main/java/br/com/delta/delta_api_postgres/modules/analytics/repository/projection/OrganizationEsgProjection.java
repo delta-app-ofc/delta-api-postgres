@@ -23,5 +23,7 @@ public interface OrganizationEsgProjection {
     BigDecimal getAvgGoalPct();
 
     BigDecimal getEstimatedSavingsValue();
+
+    Boolean getIsCompleteMonth();
 }
 

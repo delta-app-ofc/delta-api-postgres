@@ -280,7 +280,8 @@ public interface AnalyticsRepository extends JpaRepository<Property, Integer> {
             units_total AS "unitsTotal",
             units_on_target AS "unitsOnTarget",
             avg_goal_pct AS "avgGoalPct",
-            estimated_savings_value AS "estimatedSavingsValue"
+            estimated_savings_value AS "estimatedSavingsValue",
+            is_complete_month AS "isCompleteMonth"
         FROM dw.vw_ft_organization_esg
         WHERE organization_id IN (SELECT p.organization_id FROM tb_property p JOIN tb_user_property up ON up.property_id = p.id WHERE up.user_id = :userId UNION SELECT uo.organization_id FROM tb_user_organization uo WHERE uo.user_id = :userId)
         ORDER BY reference_month DESC, organization_id

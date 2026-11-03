@@ -13,7 +13,8 @@ public record OrganizationEsgIO(
         Long unitsTotal,
         Long unitsOnTarget,
         BigDecimal avgGoalPct,
-        BigDecimal estimatedSavingsValue
+        BigDecimal estimatedSavingsValue,
+        Boolean isCompleteMonth
 ) {
 }
 

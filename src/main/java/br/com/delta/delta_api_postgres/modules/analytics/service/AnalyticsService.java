@@ -271,7 +271,8 @@ public class AnalyticsService {
                         p.getUnitsTotal(),
                         p.getUnitsOnTarget(),
                         p.getAvgGoalPct(),
-                        p.getEstimatedSavingsValue()
+                        p.getEstimatedSavingsValue(),
+                        p.getIsCompleteMonth()
                 ))
                 .toList();
     }
