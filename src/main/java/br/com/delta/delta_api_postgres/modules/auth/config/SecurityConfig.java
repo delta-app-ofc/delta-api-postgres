@@ -107,7 +107,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/delta/auth/classification").permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "/delta/auth/create-account", "/delta/auth/login", "/delta/auth/refresh").permitAll()
+                                "/delta/auth/create-account", "/delta/auth/login", "/delta/auth/refresh",
+                                "/delta/auth/password/forgot", "/delta/auth/password/reset").permitAll()
                         .requestMatchers("/delta/internal/**").hasRole(ServiceKeyFilter.ROLE)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())

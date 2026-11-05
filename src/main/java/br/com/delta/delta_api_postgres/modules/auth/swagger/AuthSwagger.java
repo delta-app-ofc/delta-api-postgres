@@ -3,6 +3,8 @@ package br.com.delta.delta_api_postgres.modules.auth.swagger;
 import br.com.delta.delta_api_postgres.modules.auth.dto.CompleteRegistrationRequest;
 import br.com.delta.delta_api_postgres.modules.auth.dto.UpdateProfileRequest;
 import br.com.delta.delta_api_postgres.modules.auth.dto.EmailLookupRequest;
+import br.com.delta.delta_api_postgres.modules.auth.dto.ForgotPasswordRequest;
+import br.com.delta.delta_api_postgres.modules.auth.dto.ResetPasswordRequest;
 import br.com.delta.delta_api_postgres.modules.auth.service.RegistrationCompletionService;
 import br.com.delta.delta_api_postgres.modules.auth.service.AuthService;
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.LoginRequest;
@@ -10,6 +12,7 @@ import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.Ac
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.RefreshTokenRequest;
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.RegisterRequest;
 import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.TokenResponse;
+import br.com.delta.delta_api_postgres.modules.auth.controller.AuthController.PasswordRecoveryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -48,6 +51,24 @@ public interface AuthSwagger {
             @ApiResponse(responseCode = "401", description = "Credenciais inválidas ou usuário inativo")
     })
     ResponseEntity<TokenResponse> login(LoginRequest body);
+
+    @Operation(summary = "Solicitar redefinição de senha", security = {},
+            description = "Retorna sempre a mesma mensagem para não revelar se o e-mail está cadastrado. O link usa token temporário no Redis e depende de SMTP configurado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "Solicitação recebida"),
+            @ApiResponse(responseCode = "400", description = "E-mail inválido"),
+            @ApiResponse(responseCode = "429", description = "Muitas tentativas"),
+            @ApiResponse(responseCode = "503", description = "SMTP indisponível ou não configurado")
+    })
+    ResponseEntity<PasswordRecoveryResponse> forgotPassword(ForgotPasswordRequest body);
+
+    @Operation(summary = "Redefinir senha usando o link por e-mail", security = {})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Senha redefinida; token consumido"),
+            @ApiResponse(responseCode = "400", description = "Token inválido/expirado ou senha inválida"),
+            @ApiResponse(responseCode = "429", description = "Muitas tentativas")
+    })
+    ResponseEntity<PasswordRecoveryResponse> resetPassword(ResetPasswordRequest body);
 
     @Operation(summary = "Renovar access token", security = {})
     @ApiResponses({

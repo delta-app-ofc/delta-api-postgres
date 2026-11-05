@@ -3,10 +3,13 @@ package br.com.delta.delta_api_postgres.modules.auth.controller;
 import br.com.delta.delta_api_postgres.modules.auth.dto.CompleteRegistrationRequest;
 import br.com.delta.delta_api_postgres.modules.auth.dto.UpdateProfileRequest;
 import br.com.delta.delta_api_postgres.modules.auth.dto.EmailLookupRequest;
+import br.com.delta.delta_api_postgres.modules.auth.dto.ForgotPasswordRequest;
+import br.com.delta.delta_api_postgres.modules.auth.dto.ResetPasswordRequest;
 import br.com.delta.delta_api_postgres.modules.auth.service.RegistrationCompletionService;
 import br.com.delta.delta_api_postgres.modules.auth.security.CurrentUser;
 import br.com.delta.delta_api_postgres.modules.auth.service.AuthService;
 import br.com.delta.delta_api_postgres.modules.auth.service.TokenService;
+import br.com.delta.delta_api_postgres.modules.auth.service.PasswordResetService;
 import br.com.delta.delta_api_postgres.modules.auth.swagger.AuthSwagger;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -23,6 +26,7 @@ public class AuthController implements AuthSwagger {
     private final AuthService auth;
     private final CurrentUser currentUser;
     private final RegistrationCompletionService completion;
+    private final PasswordResetService passwordReset;
 
     public record LoginRequest(@NotBlank @Email @Size(max = 255) String email,
                                @NotBlank @Size(max = 256) String password) {}
@@ -35,6 +39,7 @@ public class AuthController implements AuthSwagger {
     public record TokenResponse(String accessToken, String tokenType, long expiresIn,
                                 String refreshToken, long refreshExpiresIn) {}
     public record AccessTokenResponse(String accessToken, String tokenType, long expiresIn) {}
+    public record PasswordRecoveryResponse(String message) {}
 
     @Override
     @GetMapping("/classification")
@@ -55,6 +60,19 @@ public class AuthController implements AuthSwagger {
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest body) {
         return tokenResponse(auth.login(body.email(), body.password()), HttpStatus.OK);
+    }
+
+    @PostMapping("/password/forgot")
+    public ResponseEntity<PasswordRecoveryResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest body) {
+        return ResponseEntity.accepted().cacheControl(CacheControl.noStore())
+                .body(new PasswordRecoveryResponse(passwordReset.request(body.email())));
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<PasswordRecoveryResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest body) {
+        passwordReset.reset(body);
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(new PasswordRecoveryResponse("Senha redefinida. Agora você já pode entrar."));
     }
 
     @Override
