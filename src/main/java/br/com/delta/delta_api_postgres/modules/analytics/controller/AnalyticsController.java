@@ -18,6 +18,7 @@ import br.com.delta.delta_api_postgres.modules.analytics.dto.io.MonthlyVariation
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.PropertyRankingIO;
 import br.com.delta.delta_api_postgres.modules.analytics.dto.io.ResidentialEfficiencyRankingIO;
 import br.com.delta.delta_api_postgres.modules.analytics.service.AnalyticsService;
+import br.com.delta.delta_api_postgres.modules.analytics.swagger.AnalyticsSwagger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,11 +33,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/delta/analytics")
 @RequiredArgsConstructor
-public class AnalyticsController {
+public class AnalyticsController implements AnalyticsSwagger {
 
     private final AnalyticsService analyticsService;
 
     @GetMapping("/consumption-daily/{propertyId}")
+    @Override
     public ResponseEntity<List<ConsumptionDailyIO>> findConsumptionDailyByPropertyId(
             @PathVariable Integer propertyId) {
 
@@ -46,6 +48,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/property-ranking")
+    @Override
     public ResponseEntity<List<PropertyRankingIO>> findPropertyRanking() {
         return ResponseEntity.ok(
                 analyticsService.findPropertyRanking()
@@ -53,6 +56,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/monthly-variation/{propertyId}")
+    @Override
     public ResponseEntity<List<MonthlyVariationIO>> findMonthlyVariationByPropertyId(
             @PathVariable Integer propertyId) {
 
@@ -62,6 +66,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/consumption-distribution")
+    @Override
     public ResponseEntity<List<ConsumptionDistributionIO>> findConsumptionDistribution() {
         return ResponseEntity.ok(
                 analyticsService.findConsumptionDistribution()
@@ -69,6 +74,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/capex-comparison")
+    @Override
     public ResponseEntity<List<CapexComparisonIO>> findCapexComparison() {
         return ResponseEntity.ok(
                 analyticsService.findCapexComparison()
@@ -76,6 +82,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/residential-efficiency-ranking/{userId}")
+    @Override
     public ResponseEntity<List<ResidentialEfficiencyRankingIO>> findResidentialEfficiencyRankingByUserId(
             @PathVariable Integer userId) {
 
@@ -85,6 +92,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/audit-history")
+    @Override
     public ResponseEntity<List<AuditHistoryChainIO>> findAuditHistory(
             @RequestParam(required = false) Integer regionRateId) {
 
@@ -94,17 +102,20 @@ public class AnalyticsController {
     }
 
     @GetMapping("/organization-kpi")
+    @Override
     public ResponseEntity<List<OrganizationMonthlyKpiIO>> findOrganizationMonthlyKpi() {
         return ResponseEntity.ok(analyticsService.findOrganizationMonthlyKpi());
     }
 
     @GetMapping("/property-monthly")
+    @Override
     public ResponseEntity<List<PropertyMonthlyIO>> findPropertyMonthly(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate month) {
         return ResponseEntity.ok(analyticsService.findPropertyMonthly(month));
     }
 
     @GetMapping("/monitoring-hourly")
+    @Override
     public ResponseEntity<List<MonitoringHourlyIO>> findMonitoringHourly(
             @RequestParam(defaultValue = "24") Integer hours,
             @RequestParam(required = false) Integer windowMinutes) {
@@ -112,27 +123,32 @@ public class AnalyticsController {
     }
 
     @GetMapping("/devices")
+    @Override
     public ResponseEntity<List<DeviceStatusIO>> findDeviceStatus() {
         return ResponseEntity.ok(analyticsService.findDeviceStatus());
     }
 
     @GetMapping("/devices/summary")
+    @Override
     public ResponseEntity<List<DeviceSummaryIO>> findDeviceSummary() {
         return ResponseEntity.ok(analyticsService.findDeviceSummary());
     }
 
     @GetMapping("/leaks")
+    @Override
     public ResponseEntity<List<LeakIO>> findLeaks(
             @RequestParam(required = false) String status) {
         return ResponseEntity.ok(analyticsService.findLeaks(status));
     }
 
     @GetMapping("/esg")
+    @Override
     public ResponseEntity<List<OrganizationEsgIO>> findOrganizationEsg() {
         return ResponseEntity.ok(analyticsService.findOrganizationEsg());
     }
 
     @GetMapping("/alerts")
+    @Override
     public ResponseEntity<List<AlertIO>> findAlerts(
             @RequestParam(required = false) String severity,
             @RequestParam(required = false) String alertType,
@@ -141,6 +157,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/investment-impact")
+    @Override
     public ResponseEntity<List<InvestmentImpactIO>> findInvestmentImpact() {
         return ResponseEntity.ok(analyticsService.findInvestmentImpact());
     }
