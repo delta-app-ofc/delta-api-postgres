@@ -451,7 +451,9 @@ class UserDataIntegrationTests extends AuthTestConfig {
         mvc.perform(post("/delta/organizations").header("Authorization", bearer).contentType("application/json").content(body))
                 .andExpect(status().isForbidden());
         mvc.perform(put("/delta/organizations/" + own.getId()).header("Authorization", bearer).contentType("application/json").content(body))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
+        mvc.perform(put("/delta/organizations/" + other.getId()).header("Authorization", bearer).contentType("application/json").content(body))
+                .andExpect(status().isNotFound());
         mvc.perform(delete("/delta/organizations/" + own.getId()).header("Authorization", bearer)).andExpect(status().isForbidden());
     }
 
