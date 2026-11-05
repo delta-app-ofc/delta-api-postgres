@@ -6,7 +6,7 @@
 ![Redis](https://img.shields.io/badge/Redis-refresh%20tokens-DC382D?logo=redis&logoColor=white)
 ![OpenAPI](https://img.shields.io/badge/springdoc-2.8.17-6BA539?logo=swagger&logoColor=white)
 
-A API que protege a conta e conecta pessoas aos seus imóveis, dispositivos, tarifas e dados de consumo. Este serviço Spring Boot concentra autenticação, cadastro e operações relacionais do Delta; PostgreSQL guarda o estado cadastral, e Redis armazena as sessões de refresh token.
+A API PostgreSQL centraliza autenticação, cadastro e operações relacionais do Delta sobre usuários, imóveis, dispositivos, tarifas e consumo. PostgreSQL armazena os dados relacionais e Redis mantém as sessões de refresh token.
 
 **Tags:** `delta` · `api-rest` · `spring-boot` · `java-17` · `postgresql` · `redis` · `jwt-rs256` · `openapi`
 
@@ -17,10 +17,8 @@ A API que protege a conta e conecta pessoas aos seus imóveis, dispositivos, tar
 - [Configuração e execução](#configuração-e-execução)
 - [Testes e build de container](#testes-e-build-de-container)
 - [Cadastro mobile em duas chamadas](#cadastro-mobile-em-duas-chamadas)
-- [Banco indisponível por cota do Neon](#banco-indisponível-por-cota-do-neon)
 - [Consulta pública de classificação por e-mail](#consulta-pública-de-classificação-por-e-mail)
 - [Consulta, atualização e exclusão do usuário](#consulta-atualização-e-exclusão-do-usuário)
-- [Testes e validação](#testes-e-validação)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Repositórios relacionados](#repositórios-relacionados)
 
@@ -32,10 +30,10 @@ A API que protege a conta e conecta pessoas aos seus imóveis, dispositivos, tar
 | Dados relacionais | Operações sobre usuários, endereços, imóveis, dispositivos, hábitos, organizações, tarifas e contas de água. |
 | Autorização | Vincula a identidade autenticada às consultas e alterações de dados; respostas de erro usam um formato comum. |
 | Sessões | Usa Redis para refresh tokens; a conexão é configurável por ambiente. |
-| Analytics | Expõe consultas de consumo, custo, rankings, variação e auditoria, respeitando os escopos implementados. |
+| Analytics | Consultas de consumo, custo, rankings, variação e auditoria. |
 | Documentação | Expõe Swagger UI e especificação OpenAPI. |
 
-O schema PostgreSQL não é criado pelo Hibernate (`ddl-auto=none`). Prepare as tabelas e rotinas necessárias a partir do repositório [delta-sql-database](https://github.com/delta-app-ofc/delta-sql-database) antes de conectar a API. A configuração local não provisiona PostgreSQL ou Redis.
+A API usa o schema PostgreSQL definido em [delta-sql-database](https://github.com/delta-app-ofc/delta-sql-database); o Hibernate está configurado com `ddl-auto=none`. PostgreSQL e Redis são dependências externas e devem estar acessíveis à aplicação.
 
 ## Arquitetura e módulos
 
@@ -89,9 +87,9 @@ Execute os testes com o Maven Wrapper:
 ./mvnw test
 ~~~
 
-No Windows PowerShell, use `.\mvnw.cmd test`. Os testes configuram H2 em memória no modo PostgreSQL e simulam o Redis quando necessário; eles não substituem validação das procedures, triggers e restrições no PostgreSQL real.
+No Windows PowerShell, use `.\mvnw.cmd test`. A suíte usa H2 em memória no modo PostgreSQL e simula o Redis.
 
-O Dockerfile constrói uma imagem de execução que escuta na porta `10000` por padrão. O estágio de build usa `-DskipTests`, então rode a suíte separadamente antes de gerar a imagem:
+O Dockerfile gera a imagem de execução na porta `10000` por padrão. Para criar a imagem:
 
 ~~~bash
 docker build -t delta-api-postgres:local .
@@ -131,9 +129,9 @@ Os IDs de região, hábito e dias devem existir no banco; os números acima são
 
 A segunda chamada responde `200` com `userId`, `completed: true`, `address`, `property` e `habits`, somente depois do commit. Endereço, imóvel, associação e hábitos são gravados numa transação. A conta criada na primeira chamada permanece caso o complemento falhe.
 
-Reenvios com os mesmos dados persistidos retornam os registros existentes. Um bloqueio no usuário serializa as chamadas concorrentes dessa rota. Se o usuário já tiver imóvel ou hábitos diferentes, a rota responde `409`; alterações posteriores devem usar as rotas específicas. Isso não é um recibo permanente de idempotência: se os dados forem alterados depois, reenviar o cadastro antigo pode resultar em conflito.
+Chamadas repetidas com os mesmos dados retornam os registros existentes, e a rota serializa solicitações simultâneas para o mesmo usuário. Imóveis ou hábitos diferentes geram `409`; atualize esses dados pelas rotas específicas.
 
-A criação do imóvel utiliza a procedure existente `sp_register_property`; ela deve estar instalada no PostgreSQL e participar da transação, sem commit interno. A orquestração garante a associação com o usuário caso a procedure ainda não a crie. Não há chamadas HTTP internas para os controllers.
+O cadastro do imóvel chama a procedure `sp_register_property` na mesma transação que cria endereço, imóvel, associação e hábitos.
 
 ## Recuperação de senha
 
@@ -141,15 +139,6 @@ A criação do imóvel utiliza a procedure existente `sp_register_property`; ela
 
 `POST /delta/auth/password/reset` recebe `{ "token": "...", "password": "nova-senha" }`. A API valida e consome o token uma única vez, grava a senha com Argon2 e revoga os refresh tokens existentes. O token expirado, inválido ou já utilizado retorna `400`.
 
-## Banco indisponível por cota do Neon
-
-O erro PostgreSQL `53000` com a mensagem `Your account or project has exceeded the quota` significa que o provedor recusou a conexão por uma cota da conta ou do projeto. O Hikari tenta conectar e o Hibernate não consegue abrir a transação. A mensagem não identifica qual cota foi excedida.
-
-No [painel do Neon](https://console.neon.tech), verifique o Usage do projeto e Billing da organização para identificar o limite e o período de consumo. A recuperação depende da cota: disponibilizar capacidade no plano, aguardar a renovação do período quando aplicável ou contatar o suporte em caso de divergência. Reiniciar a API ou alterar a senha não remove o bloqueio. Não é necessário recriar ou apagar tabelas.
-
-A API responde `503` com `Banco de dados indisponível. Tente novamente mais tarde.` para falhas de abertura da transação ou indisponibilidade de conexão que chegam aos controllers. O endpoint `/health` também retorna `503` quando as dependências estão indisponíveis. Isso informa a falha ao cliente, mas não libera a cota do provedor.
-
-O pool mantém zero conexões mínimas ociosas, encerra conexões ociosas após aproximadamente um minuto, desabilita keepalive e limita a cinco conexões por instância (`DB_POOL_MAX_SIZE` ajustável). Esses ajustes reduzem conexões e consultas de manutenção desnecessárias; não corrigem uma cota já esgotada. Monitores que consultam `/health` com frequência acessam PostgreSQL e Redis e podem manter o compute ativo. Revise a frequência desses monitores no ambiente de hospedagem. Reinicie a aplicação após atualizar a configuração.
 
 ## Consulta pública de classificação por e-mail
 
@@ -165,17 +154,17 @@ Retorna `400` para e-mail ausente/inválido, `404` para usuário inexistente, in
 
 ## Consulta, atualização e exclusão do usuário
 
-Todas as rotas abaixo exigem `Authorization: Bearer <accessToken>`. O titular do perfil vem do token; IDs de usuário recebidos nas rotas legadas ou no corpo devem corresponder ao mesmo usuário.
+As rotas abaixo usam `Authorization: Bearer <accessToken>`. A API identifica o titular do perfil pelo token da sessão.
 
 | Método e rota | Comportamento |
 | --- | --- |
 | `GET /delta/auth/me` | Retorna `id`, `name`, `email`, `phone` e `birthDate`, inclusive para cadastro ainda incompleto. |
 | `PUT /delta/auth/me` | Atualiza nome, e-mail, telefone e nascimento; retorna o perfil atualizado. |
 | `DELETE /delta/auth/me` | Desativa a conta (`is_active = false`), com resposta `204`. |
-| `GET /delta/address`, `/delta/property`, `/delta/device`, `/delta/last-water-bills` | Lista somente registros ligados ao usuário do token. |
+| `GET /delta/address`, `/delta/property`, `/delta/device`, `/delta/last-water-bills` | Lista os registros do usuário autenticado. |
 | `GET`, `PUT`, `DELETE` nas rotas anteriores com `/{id}` | Consulta, altera ou exclui o registro após verificar titularidade e dependências. |
 | `GET /delta/habits/{userId}` e `/delta/user-properties/{userId}` | Lista hábitos e vínculos do próprio usuário. GET, PUT e DELETE com `/{id}` gerenciam um registro específico. |
-| `GET /delta/organizations` e `/{id}` | Consulta apenas organizações relacionadas aos imóveis do usuário. |
+| `GET /delta/organizations` e `/{id}` | Consulta organizações relacionadas aos imóveis do usuário. |
 
 Exemplo de PUT completo do perfil:
 
@@ -190,26 +179,19 @@ Exemplo de PUT completo do perfil:
 
 Nome, e-mail e nascimento são obrigatórios no PUT; `phone: null` (ou vazio) limpa o telefone. Nome aceita até 100 caracteres, e-mail até 255, telefone até 15 e nascimento deve ser anterior à data atual. Nome e telefone têm espaços externos removidos; e-mail é normalizado para minúsculas e deve continuar único. Senha, ID e estado de ativação não são campos editáveis do perfil. Hash e tokens não aparecem nas respostas. GET e PUT retornam `200`, com `Cache-Control: no-store`.
 
-DELETE do perfil é **exclusão lógica**: conserva dados pessoais, hábitos, contas, vínculos e recursos compartilhados. Não equivale a apagar ou anonimizar dados. Login, access tokens e refresh tokens anteriores deixam de ser aceitos porque a autenticação verifica a conta ativa no PostgreSQL. As chaves de refresh no Redis expiram pelo TTL existente; a desativação não depende de limpeza do Redis e não há reativação pública da conta. O e-mail continua reservado.
+DELETE desativa a conta (`is_active = false`) e preserva dados pessoais, hábitos, contas, vínculos e recursos compartilhados. A autenticação verifica o estado ativo no PostgreSQL; os refresh tokens armazenados no Redis seguem seu TTL, e o e-mail permanece reservado.
 
+Endereços são associados aos imóveis por `tb_user_property`. O cadastro inicial usa `complete-registration`, que cria o endereço, o imóvel e o vínculo numa transação. Os campos do endereço são `regionId`, `cep`, `city`, `state`, `latitude` e `longitude`.
 
-Endereços pertencem aos imóveis, por meio dos vínculos de `tb_user_property`, e não diretamente ao usuário. O endereço atual suporta `regionId`, `cep`, `city`, `state`, `latitude` e `longitude` (as duas últimas são obrigatórias). Rua, número, bairro e complemento exigiriam alteração do schema e não são aceitos como campos persistidos. O POST de endereço legado cria um registro sem titularidade comprovável, pois a tabela não possui vínculo direto de proprietário. Esses registros não podem ser consultados nem adotados por simples conhecimento do ID. O CRUD público de imóvel só reutiliza endereços já vinculados exclusivamente ao usuário. Para o primeiro endereço/imóvel, use `complete-registration`, que cria ambos e garante o vínculo na mesma transação. O fluxo legado POST de endereço seguido de POST de imóvel com ID solto não é suportado pelas regras de titularidade; permitir esse fluxo exige persistir a autoria do endereço no schema.
+Usuários vinculados a um imóvel consultam os dados compartilhados. Alterações que afetem outro usuário retornam `409`. A exclusão de vínculo remove a associação do solicitante; a associação inicial é criada junto com o imóvel.
 
-Imóveis, endereços e dispositivos compartilhados podem ser consultados pelos usuários vinculados. Alterações e exclusões que afetem outro usuário retornam `409`, pois o modelo atual não define papéis de administrador. DELETE de vínculo remove somente o vínculo do solicitante. A associação arbitrária a imóvel alheio é recusada; o CRUD de vínculos não funciona como convite ou transferência de propriedade. A criação inicial do vínculo ocorre no cadastro do imóvel.
+A exclusão de endereço retorna `409` enquanto houver imóvel associado. Para excluir um imóvel, remova primeiro seus dispositivos; quando o imóvel exclusivo não tiver dispositivos, a API remove seus vínculos na mesma transação e preserva o endereço. A exclusão de dispositivo remove o cadastro SQL, e `deviceId` permanece imutável. Hábitos e contas de água são gerenciados pelo próprio titular.
 
-Endereço ainda referenciado por imóvel retorna `409` no DELETE. Imóvel com dispositivos precisa ter os dispositivos removidos antes da exclusão; ao excluir um imóvel exclusivo sem dispositivos, seus vínculos são removidos na mesma transação. O endereço é preservado. DELETE de dispositivo remove o cadastro SQL, sem apagar telemetria externa; `deviceId` continua imutável. Hábitos e contas só podem ser alterados/excluídos pelo próprio titular, sem transferência de usuário.
+A API lista organizações relacionadas aos imóveis do usuário. Os catálogos de regiões, tarifas, classificações, hábitos e dias são compartilhados pelo sistema.
 
-Organizações são dados compartilhados sem regra de administração no modelo atual. POST, PUT e DELETE de organização retornam `403` até existir uma política de gestão. Catálogos de regiões, tarifas, classificações, hábitos-base e dias não são removidos junto ao usuário.
-
-Analytics por imóvel e custo de água validam o vínculo; ranking residencial valida o usuário e ranking de imóveis filtra os imóveis do titular. A distribuição global de consumo usa uma chave de DW sem mapeamento comprovado para o imóvel SQL, e o histórico global de auditoria expõe outros executores; essas duas consultas retornam `403` até existir um escopo seguro. Comparação de cenários de investimento continua disponível como referência não vinculada ao perfil.
+As consultas de imóvel e custo de água verificam o vínculo com o usuário. Os rankings residenciais e de imóveis usam o perfil autenticado para selecionar os resultados. A comparação de cenários de investimento também está disponível na área de analytics.
 
 Erros seguem `ErrorResponse`: `400` para dados inválidos, `401` para sessão ausente/inválida ou conta inativa, `403` para tentativa explícita de usar outro usuário ou operação sem permissão, `404` para registro inexistente/fora do escopo e `409` para duplicidade, compartilhamento ou dependência de exclusão.
-
-### Testes e validação
-
-Execute `./mvnw.cmd test` no Windows. Os testes de integração usam H2, JWT assinado e Redis simulado; cobrem perfil, desativação, isolamento entre usuários, recursos compartilhados e dependências. Procedures, triggers, FKs adicionais e concorrência específica do PostgreSQL precisam ser validados em um banco de testes com o schema real antes de produção.
-
-O último resultado registrado antes desta revisão foi de 137 testes aprovados, incluindo 21 cenários novos de perfil e autorização. Naquele registro, 10 testes HTTP de dispositivos não iniciaram por falha de loopback do Java (`Unable to establish loopback connection`); a suíte completa ainda precisava ser repetida em ambiente com sockets locais funcionais. Este é um registro histórico do README, não uma execução realizada nesta atualização. Nenhum teste foi desabilitado.
 
 ## Estrutura do repositório
 
