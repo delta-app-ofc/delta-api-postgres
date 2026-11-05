@@ -23,6 +23,18 @@ public class OrganizationService {
 
     public OrganizationIO create(OrganizationIO io) {
         access.denyOrganizationMutation();
+        return saveNew(io);
+    }
+
+    /**
+     * Usado só pelo cadastro inicial (complete-registration): a organização nasce na mesma transação da primeira
+     * instalação do usuário, que é o que o vincula a ela. A criação avulsa continua negada em {@link #create}.
+     */
+    public OrganizationIO createForRegistration(OrganizationIO io) {
+        return saveNew(io);
+    }
+
+    private OrganizationIO saveNew(OrganizationIO io) {
         if (organizationRepository.existsByCnpj(io.cnpj())) {
             throw new ResourceAlreadyExistsException(
                     "Já existe uma organização cadastrada com esse CNPJ"
@@ -52,7 +64,7 @@ public class OrganizationService {
     }
 
     public OrganizationIO update(Integer id, OrganizationIO io) {
-        access.denyOrganizationMutation();
+        access.organization(id);
         Organization organization = organizationRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Organização não encontrada")
         );

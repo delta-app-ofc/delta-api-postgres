@@ -5,6 +5,7 @@ import br.com.delta.delta_api_postgres.modules.auth.entity.AuthUser;
 import br.com.delta.delta_api_postgres.modules.auth.repository.AuthUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +63,16 @@ public class RefreshTokenService {
         }
 
         return tokens.accessToken(user, clock.instant());
+    }
+
+    public void revokeAllForUser(Integer userId) {
+        String expectedUserId = userId.toString();
+        try (var cursor = redisTemplate.scan(ScanOptions.scanOptions().match(KEY_PREFIX + "*").count(500).build())) {
+            while (cursor.hasNext()) {
+                String key = cursor.next();
+                if (expectedUserId.equals(redisTemplate.opsForValue().get(key))) redisTemplate.delete(key);
+            }
+        }
     }
 
     private String redisKey(String refreshToken) {

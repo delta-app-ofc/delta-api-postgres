@@ -135,6 +135,12 @@ Reenvios com os mesmos dados persistidos retornam os registros existentes. Um bl
 
 A criação do imóvel utiliza a procedure existente `sp_register_property`; ela deve estar instalada no PostgreSQL e participar da transação, sem commit interno. A orquestração garante a associação com o usuário caso a procedure ainda não a crie. Não há chamadas HTTP internas para os controllers.
 
+## Recuperação de senha
+
+`POST /delta/auth/password/forgot` recebe `{ "email": "pessoa@example.com" }` sem autenticação. Para contas ativas, a API cria um token aleatório, guarda somente seu hash no Redis por 30 minutos e envia um link HTML para `/redefinir-senha?token=...`. A resposta `202` é igual para e-mails existentes e inexistentes para evitar enumeração de contas. Tentativas são limitadas pelo filtro de autenticação.
+
+`POST /delta/auth/password/reset` recebe `{ "token": "...", "password": "nova-senha" }`. A API valida e consome o token uma única vez, grava a senha com Argon2 e revoga os refresh tokens existentes. O token expirado, inválido ou já utilizado retorna `400`.
+
 ## Banco indisponível por cota do Neon
 
 O erro PostgreSQL `53000` com a mensagem `Your account or project has exceeded the quota` significa que o provedor recusou a conexão por uma cota da conta ou do projeto. O Hikari tenta conectar e o Hibernate não consegue abrir a transação. A mensagem não identifica qual cota foi excedida.
@@ -185,6 +191,7 @@ Exemplo de PUT completo do perfil:
 Nome, e-mail e nascimento são obrigatórios no PUT; `phone: null` (ou vazio) limpa o telefone. Nome aceita até 100 caracteres, e-mail até 255, telefone até 15 e nascimento deve ser anterior à data atual. Nome e telefone têm espaços externos removidos; e-mail é normalizado para minúsculas e deve continuar único. Senha, ID e estado de ativação não são campos editáveis do perfil. Hash e tokens não aparecem nas respostas. GET e PUT retornam `200`, com `Cache-Control: no-store`.
 
 DELETE do perfil é **exclusão lógica**: conserva dados pessoais, hábitos, contas, vínculos e recursos compartilhados. Não equivale a apagar ou anonimizar dados. Login, access tokens e refresh tokens anteriores deixam de ser aceitos porque a autenticação verifica a conta ativa no PostgreSQL. As chaves de refresh no Redis expiram pelo TTL existente; a desativação não depende de limpeza do Redis e não há reativação pública da conta. O e-mail continua reservado.
+
 
 Endereços pertencem aos imóveis, por meio dos vínculos de `tb_user_property`, e não diretamente ao usuário. O endereço atual suporta `regionId`, `cep`, `city`, `state`, `latitude` e `longitude` (as duas últimas são obrigatórias). Rua, número, bairro e complemento exigiriam alteração do schema e não são aceitos como campos persistidos. O POST de endereço legado cria um registro sem titularidade comprovável, pois a tabela não possui vínculo direto de proprietário. Esses registros não podem ser consultados nem adotados por simples conhecimento do ID. O CRUD público de imóvel só reutiliza endereços já vinculados exclusivamente ao usuário. Para o primeiro endereço/imóvel, use `complete-registration`, que cria ambos e garante o vínculo na mesma transação. O fluxo legado POST de endereço seguido de POST de imóvel com ID solto não é suportado pelas regras de titularidade; permitir esse fluxo exige persistir a autoria do endereço no schema.
 

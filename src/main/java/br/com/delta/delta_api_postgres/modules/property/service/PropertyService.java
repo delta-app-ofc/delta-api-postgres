@@ -47,8 +47,19 @@ public class PropertyService {
     @Transactional
     public PropertyIO create(Integer userId, PropertyIO request) {
         access.requireUser(userId);
-        access.assignAddress(request.addressId());
         access.organization(request.organizationId());
+        return register(userId, request);
+    }
+
+    /** Primeira instalação de uma organização criada nesta mesma transação: ainda não há vínculo para checar. */
+    @Transactional
+    public PropertyIO createForNewOrganization(Integer userId, PropertyIO request) {
+        return register(userId, request);
+    }
+
+    private PropertyIO register(Integer userId, PropertyIO request) {
+        access.requireUser(userId);
+        access.assignAddress(request.addressId());
         Integer propertyId = propertyRepository.registerProperty(
                 userId,
                 request.name(),
