@@ -20,7 +20,10 @@ public class AuthProperties {
     private String publicKey = "";
     // Chave compartilhada para chamadas entre serviços em /delta/internal/**; vazia = rotas fechadas.
     private String serviceKey = "";
-    private List<String> allowedOrigins = List.of("http://localhost:5173", "http://localhost:3000");
+    private List<String> allowedOrigins = List.of(
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "https://delta-web-app.onrender.com");
     @Min(1) private int attemptsPerMinute = 30;
     @NotNull private Duration refreshTtl = Duration.ofDays(30);
 }
